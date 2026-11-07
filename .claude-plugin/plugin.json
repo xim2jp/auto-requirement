@@ -1,6 +1,6 @@
 {
   "name": "rfp-requirements-framework",
-  "version": "1.0.0",
+  "version": "1.1.0",
   "description": "RFP を起点に要件定義を行い、Word 要件定義書・Excel 要件一覧・PowerPoint 要件定義サマリーを納品する要件定義ハーネス（5 エージェント + 3 Skill）",
   "author": {
     "name": "RFP Requirements Framework contributors"
