@@ -1,0 +1,13 @@
+{
+  "_comment": "案件で使う MCP サーバーの雛形。使うものだけ残して .mcp.json にリネームする。トークンは環境変数（${VAR}）で渡し、値をコミットしない。RFP・参考資料が Google Drive / SharePoint にある場合は、claude.ai のコネクタか各社公式の MCP を使う。常時接続は増やさない。",
+  "mcpServers": {
+    "context7": {
+      "command": "npx",
+      "args": ["-y", "@upstash/context7-mcp@latest"]
+    },
+    "playwright": {
+      "command": "npx",
+      "args": ["-y", "@playwright/mcp@latest", "--headless"]
+    }
+  }
+}

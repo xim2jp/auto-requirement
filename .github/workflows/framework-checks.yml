@@ -1,0 +1,54 @@
+name: framework-checks
+
+on:
+  pull_request:
+    branches: [main]
+  push:
+    branches: [main]
+
+jobs:
+  layout-drift:
+    name: レイアウトドリフト検査（compatibility-contract 準拠）
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: check-layout-drift
+        run: bash scripts/check-layout-drift.sh
+
+  harness:
+    name: ハーネス検査（harness-authoring-guide 準拠）
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: check-harness
+        run: bash scripts/check-harness.sh
+
+  smoke:
+    name: スモークテスト（new-project → setup → Office 生成）
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: smoke-test
+        run: bash scripts/smoke-test.sh
+
+  changelog-check:
+    name: CHANGELOG 更新確認
+    runs-on: ubuntu-latest
+    if: github.event_name == 'pull_request'
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - name: .claude 変更時に CHANGELOG.md の更新を要求
+        run: |
+          BASE="${{ github.event.pull_request.base.sha }}"
+          HEAD="${{ github.event.pull_request.head.sha }}"
+          CHANGED=$(git diff --name-only "$BASE" "$HEAD")
+          if echo "$CHANGED" | grep -q '^\.claude/' && ! echo "$CHANGED" | grep -q '^CHANGELOG\.md$'; then
+            echo "❌ .claude/ に変更がありますが CHANGELOG.md が更新されていません"
+            exit 1
+          fi
+          echo "✅ OK"

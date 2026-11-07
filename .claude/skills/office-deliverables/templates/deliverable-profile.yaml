@@ -1,0 +1,67 @@
+# 成果物プロファイル（docs/04-deliverables/deliverable-profile.yaml）
+# Office 納品物の文書情報と体裁を決める。省略した項目はスクリプトの既定値（scripts/profile.py の DEFAULTS）になる。
+# 案件名・発注者・作成者・文書番号・機密区分は、生成前にユーザー（PM 経由）に確認すること。
+
+project:
+  name: 〇〇システム更改                # 案件名（ファイル名にも入る）
+  client: 株式会社〇〇                  # 発注者。表紙に「御中」を付けて表示
+  vendor: 〇〇株式会社                  # 作成者（受注者・自社）
+  doc_number: REQ-2026-001              # 文書番号（無ければ空）
+  version: "1.0"                        # 版数。再提出のたびに上げる（0.9 = 発注者レビュー版、1.0 = 承認版 など）
+  status: 初版                          # 表紙の版数欄に併記（ドラフト／レビュー版／承認版）
+  date:                                 # 発行日 YYYY-MM-DD。空なら生成日
+  confidentiality: 社外秘               # 機密区分（社外秘／関係者限り／取扱注意 など）
+  author: 山田 太郎                     # 文書プロパティの作成者
+  approvals:                            # 承認欄（左から順）。名前・日付は空でよい（押印・記入欄になる）
+    - {role: 作成, name: "", date: ""}
+    - {role: 確認, name: "", date: ""}
+    - {role: 承認, name: "", date: ""}
+  revisions:                            # 改訂履歴。上から古い順
+    - {version: "0.9", date: 2026-11-10, description: 発注者レビュー版, author: 山田}
+    - {version: "1.0", date: 2026-11-20, description: レビュー指摘（OQ-001〜005 の回答）を反映, author: 山田}
+
+theme:                                  # 配色（16 進）とフォント。発注者・自社の指定があれば合わせる
+  primary: "1F3864"                     # 見出し・表ヘッダー（濃紺）
+  accent: "2E75B6"                      # 強調・罫線
+  light: "DEEAF6"                       # 注記・カードの背景
+  muted: "595959"                       # 補助テキスト
+  font_body: 游明朝                     # Word 本文（和文）
+  font_heading: 游ゴシック              # Word 見出し（和文）
+  font_latin_body: Century
+  font_latin_heading: Arial
+  font_ui: 游ゴシック                   # Excel・PowerPoint
+  font_code: BIZ UDゴシック             # 図のソース・等幅
+
+output:
+  dir: deliverables
+  filename_pattern: "{kind}_{project}_v{version}"   # 使える変数：kind / project / version / date
+  mermaid: auto                         # auto（mmdc があれば画像化）／npx（npx で取得して画像化）／source／off
+
+word:
+  title: 要件定義書
+  subtitle: ""                          # 例：「〇〇業務の電子化に関する要件定義」
+  landscape_table_columns: 8            # この列数以上の表は横向きページ
+  main: requirements.md
+  appendices:                           # 別紙の順序とタイトル。存在しないファイルは自動で飛ばし、番号を詰める
+    - {title: 業務要件一覧, source: business-requirements.md}
+    - {title: ユースケース一覧, source: use-cases.md}
+    - {title: 非機能要件一覧, source: non-functional.md}
+    - {title: ロール・権限マトリクス, source: permissions-matrix.md}
+    - {title: 用語集, source: glossary.md}
+    - {title: 要確認事項一覧, source: open-questions.md}
+    - {title: RFP 要求分析表, source: rfp-analysis.md}
+
+excel:
+  title: 要件一覧（管理台帳）
+  traceability: true
+  summary: true
+  # sheets を書くと既定のシート構成を置き換える（name：シート名、source：ファイル名、
+  # id_prefix：1 列目の ID 接頭辞、heading：ID の無い表を見出し名で選ぶ、first_table_only：最初の表だけ）
+  # sheets:
+  #   - {name: RFP要求, source: rfp-analysis.md, id_prefix: RFP-}
+  #   - {name: 業務要件(BZ), source: business-requirements.md, id_prefix: BZ-}
+
+powerpoint:
+  kind: 要件定義サマリー
+  spec: summary-deck.yaml               # docs/04-deliverables/ からの相対パス
+  max_table_rows: 9

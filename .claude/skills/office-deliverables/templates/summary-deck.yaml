@@ -1,0 +1,101 @@
+# 要件定義サマリー（docs/04-deliverables/summary-deck.yaml）
+# 仕様：.claude/skills/office-deliverables/references/deck-spec.md
+# 〈〉の箇所を案件の内容に置き換え、不要なスライドは削る。数値・ID の表は from で正本から引く。
+
+title: 要件定義サマリー
+subtitle: 〈案件名〉の要件定義の結果と、ご判断いただきたい事項
+agenda: true
+
+slides:
+  - type: section
+    title: 背景と目的
+
+  - type: before_after
+    title: 現状の問題と目指す姿
+    message: 〈問題を定量で 1 文。例：受付 1 件に 15 分、月 300 時間を二重入力に費やしている〉
+    before:
+      - 〈現状の問題 1（定量）〉
+      - 〈現状の問題 2〉
+    after:
+      - 〈実現後の姿 1（目標値）〉
+      - 〈実現後の姿 2〉
+    source: 要件定義書 §4・別紙1 §1
+
+  - type: table
+    title: 達成目標
+    message: 〈RFP の目的を測定できる目標に置き換えた結果を 1 文で〉
+    from: {file: rfp-analysis.md, id_prefix: OBJ-, columns: [ID, 達成目標, 測定尺度]}
+
+  - type: section
+    title: 要件定義の結果
+
+  - type: kpi
+    title: 要件の全体像
+    message: 〈RFP 要求 N 件を、業務要件 N 件・ユースケース N 件・非機能要件 N 件に整理しました〉
+    items:
+      - {label: RFP 要求, value: "〈N〉", sub: "対象外 〈N〉 件（理由は別紙7）"}
+      - {label: 業務要件（BZ）, value: "〈N〉", sub: "Must 〈N〉／Should 〈N〉／Could 〈N〉"}
+      - {label: ユースケース（UC）, value: "〈N〉"}
+      - {label: 非機能要件（NFR）, value: "〈N〉"}
+
+  - type: table
+    title: RFP 要求への対応
+    message: 〈対象外・先送りにした要求と理由を明示する〉
+    from: {file: rfp-analysis.md, id_prefix: RFP-, columns: [ID, RFP の要求, 判定, 要件定義での扱い, 対応 ID]}
+
+  - type: table
+    title: 業務要件（採用分）
+    message: 〈Must の範囲を 1 文で〉
+    from: {file: business-requirements.md, id_prefix: BZ-, columns: [ID, 手段, MoSCoW, 採否], filter: {column: 採否, equals: 採用}}
+
+  - type: two_column
+    title: スコープ
+    message: 〈対象と対象外の境界を 1 文で〉
+    left:
+      heading: 対象とするもの
+      bullets: [〈対象 1〉, 〈対象 2〉]
+    right:
+      heading: 対象外とするもの（理由）
+      bullets: [〈対象外 1（理由）〉, 〈対象外 2（理由）〉]
+
+  - type: table
+    title: 主要ユースケース
+    from: {file: use-cases.md, id_prefix: UC-, first_table_only: true, columns: [ID, ユースケース名, 主アクター, 業務領域]}
+
+  - type: table
+    title: 非機能要件の主要値
+    message: 〈可用性・性能・セキュリティの水準を 1 文で〉
+    from: {file: non-functional.md, id_prefix: NFR-, columns: [ID, 項目, 要件, 優先度], filter: {column: 優先度, equals: Must}}
+
+  - type: section
+    title: ご判断いただきたい事項
+
+  - type: table
+    title: 未決事項
+    message: 〈N 件は 〈期限〉 までのご判断が必要です〉
+    from: {file: open-questions.md, id_prefix: OQ-, columns: [ID, 内容, 決まらない場合の影響, 期限], filter: {column: ステータス, equals: open}}
+
+  - type: kpi
+    title: 投資と効果の概算
+    message: 〈推奨：着手／縮小／棚上げ と理由〉
+    items:
+      - {label: 初期投資, value: "〈¥〉"}
+      - {label: 運用費（36 か月）, value: "〈¥〉"}
+      - {label: 効果（3 年累積）, value: "〈¥／時間〉"}
+    source: 要件定義書 §17
+
+  - type: steps
+    title: 今後の進め方
+    current: 0
+    steps:
+      - {label: 要件定義の承認, period: 〈11 月〉, bullets: [未決事項のご回答, 要件定義書のご承認]}
+      - {label: 基本設計, period: 〈12〜1 月〉, bullets: [画面・帳票・データ設計]}
+      - {label: 開発・テスト, period: 〈2〜5 月〉, bullets: [〈〉]}
+      - {label: 移行・稼働, period: 〈6 月〉, bullets: [〈〉]}
+
+  - type: closing
+    title: お願い事項
+    bullets:
+      - 未決事項へのご回答（〈期限〉まで）
+      - 要件定義書（第 〈版〉 版）のご確認とご承認
+    contact: 〈連絡先：担当者名／メール〉

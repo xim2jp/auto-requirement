@@ -1,0 +1,8 @@
+{
+  "name": "rfp-requirements-framework",
+  "owner": { "name": "RFP Requirements Framework contributors" },
+  "description": "RFP Requirements Framework（RFP 起点の要件定義＋Office 納品物）の配布用マーケットプレイス",
+  "plugins": [
+    { "name": "rfp-requirements-framework", "source": "./" }
+  ]
+}
