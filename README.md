@@ -23,6 +23,27 @@ Phase 5  成果物レビュー                deliverable-reviewer ⇄ 修正ル
 
 ユーザーが話す相手は PM（メインセッション）だけ。PM が専門エージェントを起動し、レビューの Block は自動で修正ループに入る。
 
+## ライト版（スキル 1 ファイルだけ）
+
+エージェント・hooks・Office 生成なしで、**RFP 分析表と要件定義書を Markdown で作る**だけの単体スキルを `skillfile/` に置いている。既存のリポジトリにフォルダごとコピーすれば動く。
+
+```bash
+# 自分のリポジトリに入れる（ユーザー全体で使うなら ~/.claude/skills/ に置く）
+mkdir -p .claude/skills
+cp -r <このリポジトリ>/skillfile/rfp-requirements .claude/skills/
+
+# RFP を置いて Claude Code に頼む
+claude
+> docs/rfp.pdf の RFP から要件定義書を作って
+```
+
+| | ライト版（`skillfile/rfp-requirements/`） | フルハーネス（本リポジトリの `.claude/`） |
+|---|---|---|
+| 構成 | `SKILL.md` 1 ファイル | 5 エージェント + 3 Skill + hooks + スクリプト |
+| 出力 | `docs/requirements/rfp-analysis.md`・`requirements.md`（Markdown） | `docs/` 一式 ＋ Word・Excel・PowerPoint |
+| レビュー | セルフレビュー（Grep ＋ チェックリスト） | 独立したレビュー役が修正ループを回す（最大 5 回） |
+| 前提 | Claude Code だけ（Office 原本の読込に python3） | bash・Python 3.10+ |
+
 ## Office 納品物
 
 | 納品物 | 読み手 | 中身 |
@@ -91,6 +112,7 @@ bash .claude/skills/office-deliverables/scripts/build.sh extract    # RFP 原本
 │   ├── hooks/                          # 00-inputs・deliverables の保護、Verdict ブロック検査
 │   └── settings.json
 ├── .claude-plugin/                     # plugin 配布（新規案件・試用向け）
+├── skillfile/rfp-requirements/        # ライト版（単体スキル。SKILL.md 1 ファイル）
 ├── templates/project-init/             # 案件の初期化（setup.sh・CLAUDE.md・PROJECT_LEARNINGS.md・.framework-version・.mcp.json.example）
 ├── scripts/
 │   ├── new-project.sh                  # 新規案件の作成

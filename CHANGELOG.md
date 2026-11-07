@@ -7,6 +7,9 @@
 
 ## [Unreleased]
 
+### Added
+- ライト版スキル `skillfile/rfp-requirements/SKILL.md`（1 ファイル）。他のリポジトリの `.claude/skills/` にコピーするだけで、RFP 分析表と要件定義書を Markdown で作成する。RFP 原本（docx / xlsx / pptx）のテキスト化は標準ライブラリだけのスクリプトを内蔵
+
 ## [1.0.0] - 2026-11-07
 
 派生元の全工程 SDLC フレームワーク v0.18.0 を完全にコピーし、**RFP 起点の要件定義と Office 納品物の作成まで**に絞った派生フレームワークとして初版を切った。要件定義の方法論（IPA 準拠の BR → SR 2 層、記述規約、NFR 6 カテゴリ、OQ・変更要求の手続き）と `docs/03-requirements/` の成果物・ID 体系はフル版と互換。フル版の履歴（v0.1.0〜v0.18.0）はフル版リポジトリの CHANGELOG を参照。
