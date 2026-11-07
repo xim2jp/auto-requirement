@@ -1,0 +1,33 @@
+name: release-kit
+
+# v* タグの push で配布用 ZIP キットを作り、README.md だけのリポジトリでの導入テストを通してから
+# GitHub Releases に添付する。タグとキットの版数（templates/project-init/.framework-version）は一致させること。
+on:
+  push:
+    tags: ["v*"]
+
+permissions:
+  contents: write
+
+jobs:
+  kit:
+    name: 配布キットの作成と添付
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-python@v5
+        with:
+          python-version: "3.12"
+      - name: 版数の一致を確認
+        run: |
+          V="$(head -n1 templates/project-init/.framework-version | tr -d ' ')"
+          [ "v$V" = "${GITHUB_REF_NAME}" ] || { echo "❌ タグ ${GITHUB_REF_NAME} と .framework-version v$V が一致しません"; exit 1; }
+      - name: キット作成と導入テスト
+        run: bash scripts/build-kit.sh --test
+      - name: Releases に添付
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1 \
+            || gh release create "$GITHUB_REF_NAME" --title "$GITHUB_REF_NAME" --notes "導入方法は README の「既存のリポジトリに ZIP で導入する」を参照。"
+          gh release upload "$GITHUB_REF_NAME" dist/*.zip --clobber

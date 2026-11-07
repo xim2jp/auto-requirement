@@ -38,4 +38,4 @@ Phase 0 RFP 配置（ユーザー）→ 1 RFP 分析（requirements-architect）
 
 ## 還流
 
-気付きは `PROJECT_LEARNINGS.md` に即日書く。フレームワーク本体への還流手順は本体リポジトリの `docs/operations/feedback-loop.md`。
+気付きは `PROJECT_LEARNINGS.md` に即日書く。フレームワークへの改善提案は https://github.com/xim2jp/auto-requirement の Issue へ（手順は同リポジトリの `docs/operations/feedback-loop.md`）。

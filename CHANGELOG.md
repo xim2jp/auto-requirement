@@ -8,6 +8,8 @@
 ## [Unreleased]
 
 ### Added
+- 配布用 ZIP キット：`scripts/build-kit.sh` が README.md だけのリポジトリに解凍するだけで動くキット（`dist/rfp-requirements-kit-v<版>.zip`）を作り、`--test` で解凍 → Office 生成まで確認する。`v*` タグの push で GitHub Releases に自動添付（`.github/workflows/release.yml`）
+- `setup.sh` に `SKIP_VENV=1`（Python 環境の作成を初回の build.sh に任せる）
 - ライト版スキル `skillfile/rfp-requirements/SKILL.md`（1 ファイル）。他のリポジトリの `.claude/skills/` にコピーするだけで、RFP 分析表と要件定義書を Markdown で作成する。RFP 原本（docx / xlsx / pptx）のテキスト化は標準ライブラリだけのスクリプトを内蔵
 
 ## [1.0.0] - 2026-11-07

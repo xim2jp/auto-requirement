@@ -76,6 +76,23 @@ claude
 
 前提：bash、Python 3.10+（`uv` があれば高速）、Node は不要。Word に図を画像で載せたい場合だけ `npm i -g @mermaid-js/mermaid-cli`。
 
+### 既存のリポジトリに ZIP で導入する（README.md だけのリポジトリ向け）
+
+[Releases](https://github.com/xim2jp/auto-requirement/releases) から `rfp-requirements-kit-v<版>.zip` を取得し、**リポジトリの直下に解凍する**だけで使える（README.md は同梱していないので上書きされない）。
+
+```bash
+cd my-repo                                   # README.md だけがあるリポジトリ
+unzip ~/Downloads/rfp-requirements-kit-v1.1.0.zip
+cp ~/Downloads/提案依頼書.docx docs/00-inputs/rfp.docx
+claude
+> RFP を置いたので始めて
+```
+
+- 解凍されるもの：`.claude/`（5 エージェント・3 Skill・hooks）、`CLAUDE.md`（PM 役の指示）、`docs/`（RFP の置き場と成果物の骨組み）、`deliverables/`、`.gitignore`、`PROJECT_LEARNINGS.md`、`.framework-version`、`.claude-manifest`
+- `.claude` などの名前が「.」で始まるフォルダは、Mac の Finder では見えない（`Cmd + Shift + .` で表示）。Finder でコピーするより、上のように `unzip` で直接解凍するのが確実。Windows はエクスプローラーで「すべて展開」→ 中身をリポジトリ直下へ移動でよい
+- Python 環境は、初めて Office を生成するときに `.venv/` へ自動で作られる（python3 が必要。要件定義の Markdown だけなら不要）
+- 配布者向け：`bash scripts/build-kit.sh --test` で `dist/` に ZIP を作成し、README.md だけのダミーリポジトリで導入テストまで行う。`v*` タグを push すると GitHub Actions が同じ手順で ZIP を作り、Releases に添付する
+
 ### 既存のフォルダに導入する
 
 ```bash
@@ -121,7 +138,8 @@ bash .claude/skills/office-deliverables/scripts/build.sh extract    # RFP 原本
 │   ├── collect-learnings.sh            # 案件の PROJECT_LEARNINGS 集約
 │   ├── check-harness.sh                # エージェント・Skill・スクリプトの整合検査
 │   ├── check-layout-drift.sh           # 成果物パスと artifact-layout の整合検査
-│   └── smoke-test.sh                   # new-project → setup → Office 生成の通し確認
+│   ├── smoke-test.sh                   # new-project → setup → Office 生成の通し確認
+│   └── build-kit.sh                    # 配布用 ZIP キットの作成（--test で導入テスト）
 ├── docs/
 │   ├── operations/                     # 還流・バージョニング・互換性契約・ハーネス執筆ガイド
 │   ├── learnings/                      # 案件から還流した知見

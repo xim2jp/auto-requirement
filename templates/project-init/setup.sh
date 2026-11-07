@@ -140,7 +140,7 @@ fi
 
 # Python 環境（Office 納品物の生成・RFP 原本のテキスト化）
 REQS=".claude/skills/office-deliverables/scripts/requirements.txt"
-if [ -f "$REQS" ]; then
+if [ -f "$REQS" ] && [ -z "$SKIP_VENV" ]; then   # SKIP_VENV=1：配布キット作成時（初回の build.sh が作る）
   echo ""
   echo "🐍 Office 生成用の Python 環境（.venv）を準備..."
   if [ ! -x ".venv/bin/python" ]; then
