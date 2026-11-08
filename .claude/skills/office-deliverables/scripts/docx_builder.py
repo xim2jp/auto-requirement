@@ -13,7 +13,7 @@ from pathlib import Path
 from docx import Document
 from docx.enum.section import WD_ORIENT, WD_SECTION
 from docx.enum.table import WD_TABLE_ALIGNMENT
-from docx.enum.text import WD_ALIGN_PARAGRAPH, WD_BREAK, WD_TAB_ALIGNMENT
+from docx.enum.text import WD_ALIGN_PARAGRAPH, WD_TAB_ALIGNMENT
 from docx.oxml import OxmlElement
 from docx.oxml.ns import qn
 from docx.shared import Cm, Pt, RGBColor
@@ -159,6 +159,28 @@ def cant_split(row):
     trpr.append(OxmlElement("w:cantSplit"))
 
 
+def keep_next(par) -> None:
+    """段落を次の段落と同じページに置く（表のセル内の段落なら、その行を次の行と同じページに置く）。"""
+    par.paragraph_format.keep_with_next = True
+
+
+def page_break_before(p_el) -> None:
+    """w:p 要素に「段落前で改ページ」を付ける。"""
+    ppr = p_el.get_or_add_pPr()
+    if ppr.find(qn("w:pageBreakBefore")) is None:
+        el = OxmlElement("w:pageBreakBefore")
+        # CT_PPr の子要素順（pStyle・keepNext・keepLines の後）を守る
+        anchor = None
+        for tag in ("w:keepLines", "w:keepNext", "w:pStyle"):
+            anchor = ppr.find(qn(tag))
+            if anchor is not None:
+                break
+        if anchor is not None:
+            anchor.addnext(el)
+        else:
+            ppr.insert(0, el)
+
+
 def cell_margins(table, top=40, bottom=40, left=80, right=80):
     tblpr = table._tbl.tblPr
     mar = OxmlElement("w:tblCellMar")
@@ -196,6 +218,7 @@ class WordBuilder:
         self.cache = root / "tmp/office-cache"
         self.mermaid_mode = prof["output"].get("mermaid", "auto")
         self.stats = {"tables": 0, "figures": 0, "mermaid_source": 0, "landscape_sections": 0}
+        self._break_mark = None  # 改ページ待ち：この要素の次に置かれる段落／表の前で改ページする
         self._setup_styles()
         self._setup_page(self.doc.sections[0], landscape=False)
 
@@ -228,7 +251,19 @@ class WordBuilder:
                 s = st.add_style(name, 1)
             set_style_font(s, t["font_latin_heading"], t["font_heading"], 10.5 if lvl == 1 else 10, lvl == 1)
             s.paragraph_format.left_indent = Cm(0.6 * (lvl - 1))
-            s.paragraph_format.space_after = Pt(2)
+            s.paragraph_format.space_before = Pt(0)
+            s.paragraph_format.space_after = Pt(1 if lvl == 1 else 0)
+            s.paragraph_format.line_spacing = Pt(15)  # 和文フォントの既定の行の高さは大きいため固定値にする
+            # Word が目次の更新で使うのは組み込みスタイル「toc N」（小文字）。独自スタイルのままだと無視される
+            s.element.find(qn("w:name")).set(qn("w:val"), f"toc {lvl}")
+            s.element.attrib.pop(qn("w:customStyle"), None)
+        # 既定テンプレートのヘッダー・フッターのタブ位置（縦向きの幅）を消す。残ると横向きページで
+        # 段落に足したタブ位置より先に効き、右端に置くはずの文字が中央寄りになる
+        for name in ("Header", "Footer"):
+            try:
+                st[name].paragraph_format.tab_stops.clear_all()
+            except KeyError:
+                pass
 
     def _setup_page(self, sec, landscape: bool):
         if landscape:
@@ -240,6 +275,21 @@ class WordBuilder:
         sec.top_margin = sec.bottom_margin = MARGIN_TB
         sec.left_margin = sec.right_margin = MARGIN_LR
         sec.header_distance = sec.footer_distance = Cm(1.0)
+
+    def _fig_size(self, png) -> dict:
+        """図の大きさ。幅は本文幅（最大 16cm）に合わせ、縦長の図は図の名前と同じページに収まる高さで止める。"""
+        sec = self.doc.sections[-1]
+        width = min(self._content_width(), Cm(16))
+        max_h = sec.page_height - sec.top_margin - sec.bottom_margin - Cm(3)  # 図の名前・前後の余白の分
+        try:
+            from PIL import Image
+            with Image.open(png) as im:
+                pw, ph = im.size
+        except Exception:
+            return {"width": width}
+        if pw and ph and width * ph / pw > max_h:
+            return {"height": int(max_h)}
+        return {"width": width}
 
     def _content_width(self):
         sec = self.doc.sections[-1]
@@ -270,11 +320,65 @@ class WordBuilder:
         set_run_font(r, self.t["font_latin_heading"], self.t["font_heading"], 8.5, False, self.t["muted"])
         for run in add_field(fp, "NUMPAGES", "1"):
             set_run_font(run, self.t["font_latin_heading"], self.t["font_heading"], 8.5, False, self.t["muted"])
-        r = fp.add_run(f"\t{p['vendor']}")
+        r = fp.add_run(f"\t{p.get('client', '') if self.w.get('issuer') == 'client' else p['vendor']}")
         set_run_font(r, self.t["font_latin_heading"], self.t["font_heading"], 8, False, self.t["muted"])
 
+    # ---- page breaks
+    def _page_break(self):
+        """改ページを予約する。改ページだけの段落は置かず、次に置かれる段落（見出しなど）に
+        「段落前で改ページ」を付ける。改ページ用の段落はページがちょうど埋まったときに次ページへあふれ、
+        空白ページを作るため。"""
+        self._resolve_break()
+        body = self.doc.element.body
+        kids = [k for k in body if k.tag != qn("w:sectPr")]
+        self._break_mark = kids[-1] if kids else None
+
+    def _resolve_break(self):
+        mark, self._break_mark = self._break_mark, None
+        if mark is None:
+            return
+        nxt = mark.getnext()
+        if nxt is None or nxt.tag == qn("w:sectPr"):
+            return  # 後ろに何も無い：改ページ不要
+        if nxt.tag == qn("w:p"):
+            page_break_before(nxt)
+        elif nxt.tag == qn("w:tbl"):  # 表の 1 行目のセルの段落に付ける（Word・LibreOffice とも表ごと次ページへ送る）
+            ps = nxt.findall(".//" + qn("w:p"))
+            if ps:
+                page_break_before(ps[0])
+
     def _new_section(self, landscape: bool):
+        mark, self._break_mark = self._break_mark, None  # セクション区切り自体が改ページになる
+        body = self.doc.element.body
+        tail = [k for k in body if k.tag != qn("w:sectPr")]
+        if mark is not None and (not tail or tail[-1] is not mark):
+            # 改ページ予約の後に本文が続いている：予約は通常の改ページとして解決し、区切りは本文の末尾に置く
+            # （予約位置に区切りを持たせると、その後の本文まで次のセクションの向きになる）
+            self._break_mark = mark
+            self._resolve_break()
+            mark = None
+        if mark is None:
+            # 直前が表の後の間隔用の空段落なら、それにセクション区切りを持たせる（区切り用の段落を足すと
+            # 2 段落がページ末からあふれ、空白ページになる）。持たせる段落は行の高さを最小にする
+            body = self.doc.element.body
+            last = [k for k in body if k.tag != qn("w:sectPr")]
+            last = last[-1] if last else None
+            if (last is not None and last.tag == qn("w:p") and not "".join(last.itertext()).strip()
+                    and last.find(qn("w:pPr") + "/" + qn("w:sectPr")) is None):
+                mark = last
+                from docx.text.paragraph import Paragraph
+                par = Paragraph(last, self.doc._body)
+                par.paragraph_format.space_before = par.paragraph_format.space_after = Pt(0)
+                par.paragraph_format.line_spacing = Pt(1)
         sec = self.doc.add_section(WD_SECTION.NEW_PAGE)
+        if mark is not None and mark.tag == qn("w:p") and mark.find(qn("w:pPr") + "/" + qn("w:sectPr")) is None:
+            # セクション区切りだけの空段落を作らず、直前の段落（目次など）に区切りを持たせる（空白ページ防止）
+            body = self.doc.element.body
+            new_p = [k for k in body if k.tag != qn("w:sectPr")][-1]
+            sp = new_p.find(qn("w:pPr") + "/" + qn("w:sectPr"))
+            if sp is not None and new_p is not mark:
+                mark.get_or_add_pPr().append(sp)
+                body.remove(new_p)
         self._setup_page(sec, landscape)
         sec.different_first_page_header_footer = False
         # ヘッダー・フッターは前セクションにリンクしたままだと横向きでタブ位置がずれるため張り直す
@@ -409,6 +513,7 @@ class WordBuilder:
             shade(cell, self.t["primary"])
             p = cell.paragraphs[0]
             p.paragraph_format.space_after = Pt(0)
+            keep_next(p)  # 見出し行だけがページ末に残らないよう、1 行目のデータ行と同じページに置く
             p.alignment = WD_ALIGN_PARAGRAPH.CENTER
             self._runs(p, c, size=size, color="FFFFFF", bold=True)
             for run in p.runs:
@@ -424,6 +529,8 @@ class WordBuilder:
                 p = cell.paragraphs[0]
                 p.paragraph_format.space_after = Pt(0)
                 p.paragraph_format.line_spacing = 1.1
+                if ri == 1 and len(rows) >= 3:  # 1 行目のデータ行も 2 行目と同じページに（見出し行＋1 行だけの取り残しを防ぐ）
+                    keep_next(p)
                 align = tb.aligns[ci] if ci < len(tb.aligns) else None
                 if align == "center":
                     p.alignment = WD_ALIGN_PARAGRAPH.CENTER
@@ -440,7 +547,7 @@ class WordBuilder:
             png = common.mermaid_to_png(cb.text, mode, self.cache)
             if png:
                 self.stats["figures"] += 1
-                self.doc.add_picture(str(png), width=min(self._content_width(), Cm(16)))
+                self.doc.add_picture(str(png), **self._fig_size(png))
                 self.doc.paragraphs[-1].alignment = WD_ALIGN_PARAGRAPH.CENTER
                 return
             self.stats["mermaid_source"] += 1
@@ -510,6 +617,14 @@ class WordBuilder:
             elif isinstance(b, md.Table) and len(b.header) >= wide and not self.landscape:
                 self._new_section(True)
                 self.table(b, caption=md.strip_emoji(last_heading) if last_heading else None)
+            elif isinstance(b, md.Para):
+                p = self.para(b.runs)
+                nxt = blocks[i + 1] if i + 1 < len(blocks) else None
+                # 表・図の導入文（図の名前を含む）と、「：」で終わるリストの導入文は次と同じページに置く
+                if isinstance(nxt, (md.Table, md.Code)) or (
+                        isinstance(nxt, md.ListBlock) and md.plain(b.runs).rstrip().endswith(("：", ":"))):
+                    if not (isinstance(nxt, md.Table) and len(nxt.header) >= wide and not self.landscape):
+                        keep_next(p)
             else:
                 self.block(b)
             i += 1
@@ -549,10 +664,14 @@ class WordBuilder:
         par_border(bar2, "bottom", t["accent"], 8, 1)
         for _ in range(5 if getattr(self, "intro_text", "") else 8):
             self.doc.add_paragraph()
-        info = [("文書番号", p.get("doc_number") or "—"), ("版数", f"第 {p['version']} 版（{p.get('status') or ''}）"),
+        ver = f"第 {p['version']} 版" + (f"（{p['status']}）" if p.get("status") else "")
+        info = [("文書番号", p.get("doc_number") or "—"), ("版数", ver),
                 ("発行日", p["date"]), ("作成", p["vendor"]), ("機密区分", p["confidentiality"])]
         if by_client:
             info[3] = ("発行", p.get("client") or "")
+            if p.get("contact"):
+                info.insert(4, ("問い合わせ窓口", p["contact"]))
+        info = [(k, v) for k, v in info if not (k == "文書番号" and v == "—" and by_client)]
         tb = self.doc.add_table(rows=len(info), cols=2)
         tb.alignment = WD_TABLE_ALIGNMENT.RIGHT
         table_borders(tb, "BFBFBF")
@@ -566,7 +685,7 @@ class WordBuilder:
             set_run_font(r, t["font_latin_heading"], t["font_heading"], 9.5)
         self.doc.sections[0].different_first_page_header_footer = True
         self._header_footer(self.doc.sections[0])
-        self.doc.add_paragraph().add_run().add_break(WD_BREAK.PAGE)
+        self._page_break()
 
     def front_heading(self, text: str):
         """目次に載せない前付けの見出し（承認欄・改訂履歴・目次）。"""
@@ -612,18 +731,18 @@ class WordBuilder:
                    [md.Run(str(r.get("description", "")))], [md.Run(str(r.get("author", "") or ""))]] for r in revs],
         )
         self.table(tbl)
-        self.doc.add_paragraph().add_run().add_break(WD_BREAK.PAGE)
+        self._page_break()
 
-    def toc(self):
+    def toc(self, depth: str = "1-2"):
         self.front_heading("目次")
         p = self.doc.add_paragraph()
-        add_field(p, 'TOC \\o "1-2" \\h \\z \\u', "（目次は文書を開いたときに更新されます。更新されない場合は右クリック →「フィールド更新」）")
+        add_field(p, f'TOC \\o "{depth}" \\h \\z \\u', "（目次は文書を開いたときに更新されます。更新されない場合は右クリック →「フィールド更新」）")
         # 開いたときにフィールド更新を促す
         settings = self.doc.settings.element
         uf = OxmlElement("w:updateFields")
         uf.set(qn("w:val"), "true")
         settings.append(uf)
-        self.doc.add_paragraph().add_run().add_break(WD_BREAK.PAGE)
+        self._page_break()
 
     # ---- assemble
     def build(self, sources: dict[str, list], out_dir: Path, names: dict[str, str] | None = None) -> Path:
@@ -636,12 +755,16 @@ class WordBuilder:
             mapping[a["source"]] = f"別紙{n}「{a['title']}」"
         mapping[w["main"]] = "本書"
         self.namer = common.DocNamer(mapping)
+        if w.get("issuer") == "client" and w["main"] in sources:
+            self.prof = {**self.prof, "project": client_project(self.prof, sources[w["main"]], w)}
 
         self.intro_text = self._intro_text(sources[w["main"]]) if w.get("intro_from_preamble") and w["main"] in sources else ""
         self.cover()
         if w.get("front") != "light":
             self.approvals_and_revisions()
-        self.toc()
+        # 見出し 2 が多い文書（決定ログ・ユースケース一覧など）は、目次を見出し 1 までにして 1 ページに収める
+        n2 = sum(1 for b in sources.get(w["main"], []) if isinstance(b, md.Heading) and b.level == 3)
+        self.toc("1-1" if n2 > 30 else "1-2")
 
         if w["main"] in sources:
             main = md.drop_sections(common.body_blocks(sources[w["main"]]), strip)
@@ -651,11 +774,12 @@ class WordBuilder:
             if self.landscape:
                 self._new_section(False)
             else:
-                self.doc.add_paragraph().add_run().add_break(WD_BREAK.PAGE)
+                self._page_break()
             self.heading(f"別紙{n}　{a['title']}", 1)
             self._preamble_intro(sources[a["source"]])
             self.blocks(blocks, level_shift=0)
 
+        self._resolve_break()
         cp = self.doc.core_properties
         p = self.prof["project"]
         cp.title = f"{w['title']}｜{p['name']}"
@@ -687,6 +811,32 @@ class WordBuilder:
             self.quote(md.Quote([md.Para([md.Run(text)])]))
 
 
+def client_project(prof: dict, blocks: list, spec: dict) -> dict:
+    """発注者が発行する文書（RFP）の文書情報。版数・発行日は正本の冒頭表（「発行日 / 版」）から取り、
+    作成者・改訂履歴は発注者名義にする。受注者側の文書番号・版数・改訂履歴は持ち込まない。
+    rfp_word.project に書いた項目があればそれを優先する。"""
+    import re
+    p = prof["project"]
+    client = p.get("client", "")
+    head: dict[str, str] = {}
+    for b in blocks:  # 冒頭表は前書き（最初の H2 より前）にある
+        if isinstance(b, md.Table):
+            for row in b.rows:
+                if len(row) >= 2:
+                    head[md.plain(row[0]).strip()] = md.plain(row[1]).strip()
+            break
+    vd = head.get("発行日 / 版", "")
+    m_date = re.search(r"\d{4}-\d{2}-\d{2}", vd)
+    m_ver = re.search(r"第\s*([0-9.]+)\s*版", vd)
+    version = m_ver.group(1) if m_ver else p["version"]
+    date = m_date.group(0) if m_date else p["date"]
+    out = {**p, "version": version, "date": date, "status": "", "doc_number": "", "author": client,
+           "contact": head.get("問い合わせ窓口", ""),
+           "revisions": [{"version": version, "date": date, "description": "初版発行", "author": client}]}
+    out.update(spec.get("project") or {})
+    return out
+
+
 def plan(prof: dict, sources: dict[str, list]) -> list[dict]:
     """生成する Word 文書の一覧（spec の配列）。RFP（あれば）→ 要件定義書 → 別紙（separate のとき）の順。"""
     specs: list[dict] = []
@@ -705,17 +855,7 @@ def plan(prof: dict, sources: dict[str, list]) -> list[dict]:
     return specs
 
 
-def doc_names(prof: dict, sources: dict[str, list]) -> dict[str, str]:
-    """本文中のファイル名 → 納品文書での呼び名（文書ごとに自分自身は「本書」に上書きする）。"""
-    w = prof["word"]
-    names = {w["main"]: f"{w['title']}（本編）"}
-    apps = [a for a in w.get("appendices", []) if a["source"] in sources]
-    for n, a in enumerate(apps, start=1):
-        names[a["source"]] = f"別紙{n}「{a['title']}」"
-    rw = prof.get("rfp_word") or {}
-    if rw.get("main") in sources:
-        names[rw["main"]] = rw.get("title", "要件定義要求書（RFP）")
-    return names
+doc_names = common.doc_names  # 互換のため残す（正本は common.doc_names）
 
 
 def build(prof: dict, root: Path, sources: dict[str, list], out_dir: Path) -> tuple[list[Path], dict]:

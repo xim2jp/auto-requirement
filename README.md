@@ -87,7 +87,7 @@ cp ~/Downloads/提案依頼書.docx docs/00-inputs/rfp.docx
 
 ```bash
 cd my-repo                                   # README.md だけがあるリポジトリ
-unzip ~/Downloads/rfp-requirements-kit-v2.0.0.zip
+unzip ~/Downloads/rfp-requirements-kit-v2.0.1.zip
 claude
 > 作りたいシステムの説明（数行でよい）
 ```

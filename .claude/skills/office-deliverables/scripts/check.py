@@ -60,7 +60,10 @@ def run(prof: dict, root: Path, sources: dict, out_dir: Path, build_stats: dict 
     # ---------------- Word（RFP・要件定義書・別紙。docx_builder.plan と同じ一覧を検査する）
     import docx_builder  # noqa: PLC0415（循環を避けて遅延 import）
     for spec in docx_builder.plan(prof, sources):
-        p = out_dir / out_name(prof, spec["kind"], "docx")
+        sp = prof
+        if spec.get("issuer") == "client" and spec["main"] in sources:  # RFP は正本の版数でファイル名が付く
+            sp = {**prof, "project": docx_builder.client_project(prof, sources[spec["main"]], spec)}
+        p = out_dir / out_name(sp, spec["kind"], "docx")
         label = f"Word「{spec['kind']}」"
         if not p.exists():
             fail.append(f"{label} が無い：{p.name}")
@@ -154,9 +157,16 @@ def run(prof: dict, root: Path, sources: dict, out_dir: Path, build_stats: dict 
     undefined = sorted(i for i in referenced if i not in defined and i.split("-")[0] in known_prefixes)
     if undefined:
         warn.append(f"未定義 ID の参照 {len(undefined)} 件：{', '.join(undefined[:15])}{' …' if len(undefined) > 15 else ''}")
-    bz_wo = (build_stats or {}).get("xlsx", {}).get("bz_without_uc")
-    if bz_wo:
-        warn.append(f"UC を持たない BZ {len(bz_wo)} 件（業務手段のみの BZ なら問題なし）：{', '.join(bz_wo[:15])}")
+    xs = (build_stats or {}).get("xlsx", {})
+    if "bz_without_uc_gap" in xs:  # 目的系・先送り・保留・棄却・業務手段は Excel に理由付きで灰色表示される
+        gap, exc = xs.get("bz_without_uc_gap") or [], xs.get("bz_without_uc_excused") or {}
+        if gap:
+            warn.append(f"UC を持たない採用 BZ {len(gap)} 件（対応漏れの候補）：{', '.join(gap)}")
+        if exc:
+            info.append(f"UC を持たない BZ のうち理由のあるもの {len(exc)} 件（Excel トレーサビリティに理由を表示）：{', '.join(exc)}")
+    elif xs.get("bz_without_uc"):
+        bz_wo = xs["bz_without_uc"]
+        warn.append(f"UC を持たない BZ {len(bz_wo)} 件（業務手段のみの BZ なら問題なし）：{', '.join(bz_wo)}")
     if (build_stats or {}).get("docx", {}).get("mermaid_source"):
         warn.append(f"Mermaid 図 {build_stats['docx']['mermaid_source']} 件をソース枠で掲載（mmdc を導入すると図になる）")
 

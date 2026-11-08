@@ -46,6 +46,7 @@ class DeckBuilder:
         self.total = 0
         self.warnings: list[str] = []
         self.max_rows = prof["powerpoint"].get("max_table_rows", 9)
+        self.namer = lambda s: s  # build() でファイル名 → 納品文書名の置換に差し替える
 
     # ------------------------------------------------------------ primitives
     def _text(self, slide, x, y, w, h, text, size=18, bold=False, color=None, align=PP_ALIGN.LEFT,
@@ -61,7 +62,7 @@ class DeckBuilder:
             p = tf.paragraphs[0] if i == 0 else tf.add_paragraph()
             p.alignment = align
             r = p.add_run()
-            r.text = line
+            r.text = self.namer(line)
             self._font(r, size, bold, color or "262626", font)
         return tb
 
@@ -205,7 +206,7 @@ class DeckBuilder:
             r.text = mark
             self._font(r, size * (0.7 if depth == 0 else 1), False, self.t["accent"])
             r = p.add_run()
-            r.text = text
+            r.text = self.namer(text)
             self._font(r, size - 2 * depth, bold, "262626")
             pPr = p._p.get_or_add_pPr()
             pPr.set("marL", str(int(Inches(0.3 + 0.35 * depth))))
@@ -339,7 +340,7 @@ class DeckBuilder:
                     cell.text = ""
                     para = cell.text_frame.paragraphs[0]
                     run = para.add_run()
-                    run.text = str(text).replace("<br>", "\n")
+                    run.text = self.namer(str(text).replace("<br>", "\n"))
                     cell.fill.solid()
                     if r == 0:
                         cell.fill.fore_color.rgb = rgb(self.t["primary"])
@@ -390,6 +391,7 @@ class DeckBuilder:
 
     # ------------------------------------------------------------ assemble
     def build(self, spec: dict, sources: dict, out_dir: Path) -> Path:
+        self.namer = common.DocNamer(common.doc_names(self.prof, sources))
         slides = spec.get("slides") or []
         sections = [x.get("title", "") for x in slides if x.get("type") == "section"]
         self.title({k: v for k, v in spec.items() if k != "slides"})

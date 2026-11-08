@@ -43,9 +43,17 @@ def col_floors(header: list[str], rows: list[list[str]], ids_only: bool = False)
     """折り返させたくない最小幅（半角単位）：ID 値と、見出しの最長語（12 まで）。ids_only なら ID 値だけ。"""
     out = []
     for i, h in enumerate(header):
-        head = 0 if ids_only else min(max((text_width(t) for t in re.split(r"[／/（）()\s]", h) if t), default=0), 12)
+        words = [t for t in re.split(r"[／/（）()\s]", h) if t]
+        # 見出しは太字で幅が増えるため、英字語は 2 文字分の余裕を足す
+        wid = lambda t: text_width(t) + (2 if t.isascii() else 0)
+        if ids_only:  # 列が多いときも、見出しの短い英字語（MoSCoW など）は途中で折り返させない
+            head = max((wid(t) for t in words if t.isascii() and text_width(t) <= 8), default=0)
+        else:
+            head = min(max((wid(t) for t in words), default=0), 12)
         ids = [r[i].strip() for r in rows if i < len(r) and md.ID_RE.fullmatch(r[i].strip())]
-        out.append(max([head] + [text_width(c) for c in ids]))
+        # 番号・2 文字の語など短い値（半角 4 文字分以下）も途中で折り返させない（「1／0」「受／付」を防ぐ）
+        short = [r[i].strip() for r in rows if i < len(r) and 0 < text_width(r[i].strip()) <= 4]
+        out.append(max([head] + [text_width(c) for c in ids + short]))
     return out
 
 
@@ -56,13 +64,26 @@ class DocNamer:
         # 長いファイル名から置換（non-functional-requirements.md が requirements.md に誤一致しないよう境界付き）
         self.pairs = []
         for src in sorted(mapping, key=len, reverse=True):
-            pat = re.compile(r"(?<![\w./-])(?:docs/03-requirements/)?" + re.escape(src) + r"(?![\w-])")
+            pat = re.compile(r"(?<![\w./-])(?:docs/[\w.-]+/)?" + re.escape(src) + r"(?![\w-])")
             self.pairs.append((pat, mapping[src]))
 
     def __call__(self, s: str) -> str:
         for pat, name in self.pairs:
             s = pat.sub(name, s)
         return s
+
+
+def doc_names(prof: dict, sources: dict[str, list]) -> dict[str, str]:
+    """本文中のファイル名 → 納品文書での呼び名。Word は文書ごとに自分自身を「本書」に上書きし、Excel・PowerPoint はそのまま使う。"""
+    w = prof["word"]
+    names = {w["main"]: f"{w['title']}（本編）"}
+    apps = [a for a in w.get("appendices", []) if a["source"] in sources]
+    for n, a in enumerate(apps, start=1):
+        names[a["source"]] = f"別紙{n}「{a['title']}」"
+    rw = prof.get("rfp_word") or {}
+    if rw.get("main") in sources:
+        names[rw["main"]] = rw.get("title", "要件定義要求書（RFP）")
+    return names
 
 
 def mermaid_to_png(code: str, mode: str, cache_dir: Path) -> Path | None:

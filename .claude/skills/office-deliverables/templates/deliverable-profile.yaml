@@ -42,6 +42,8 @@ rfp_word:                               # 要件定義要求書（RFP）。docs/
   title: 要件定義要求書（RFP）
   subtitle: ""
   issuer: client                        # 発注者名義の表紙（宛名なし・発行＝発注者）
+  # 版数・発行日・問い合わせ窓口は rfp.md 冒頭の表から取り、改訂履歴・発行者は発注者名義になる。変えたい項目だけ project に書く
+  # project: {confidentiality: 関係者限り}
 
 word:
   title: 要件定義書
