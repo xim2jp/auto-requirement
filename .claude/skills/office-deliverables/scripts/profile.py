@@ -44,6 +44,14 @@ DEFAULTS: dict = {
         "strip_heading_emoji": True,
         "mermaid": "auto",  # auto: mmdc があれば画像化 / source: ソース枠で掲載 / off: 省略
     },
+    "rfp_word": {  # 要件定義要求書（RFP）。docs/01-rfp/rfp.md があるときだけ生成（持ち込み RFP の案件では作らない）
+        "enabled": True,
+        "kind": "要件定義要求書",
+        "title": "要件定義要求書（RFP）",
+        "subtitle": "",
+        "main": "rfp.md",
+        "issuer": "client",  # 発注者が発行する文書として表紙を組む（宛名なし・発行＝発注者）
+    },
     "word": {
         "enabled": True,
         "kind": "要件定義書",
@@ -51,6 +59,7 @@ DEFAULTS: dict = {
         "subtitle": "",
         "landscape_table_columns": 8,  # この列数以上の表は横向きページに置く
         "main": "requirements.md",
+        "appendix_mode": "separate",  # separate: 別紙ごとに単独の Word（付録文書）／bundled: 要件定義書に綴じ込む
         "appendices": [
             {"title": "業務要件一覧", "source": "business-requirements.md"},
             {"title": "ユースケース一覧", "source": "use-cases.md"},

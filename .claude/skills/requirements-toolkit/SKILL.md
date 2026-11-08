@@ -7,13 +7,13 @@ description: 発注者の RFP を起点に、漏れのない要件定義書へ�
 
 発注者の RFP を、開発着手・投資判断に耐える**要件定義書に変換する**ための知識集。対話の質（RFP 分析・プロセス・質問バンク・アンチパターン）と成果物の質（記述規約・文書ガイド・テンプレート・完全性チェック）の両面を支える。
 
-> 基盤：IPA『ユーザのための要件定義ガイド 第2版 — 要件定義を成功に導く 128 の勘どころ』（2019）。IPA の「企画工程」は発注者側で行われ、その結論が RFP（Phase 0）である。本ハーネスは RFP 分析（Phase 1）でそれを確認し、「要件定義工程」を Phase 2（要件定義）・Phase 3（要件レビュー）として行う。「基本設計（外部設計）」以降は後工程（本ハーネスの範囲外）である。
+> 基盤：IPA『ユーザのための要件定義ガイド 第2版 — 要件定義を成功に導く 128 の勘どころ』（2019）。IPA の「企画工程」は発注者側で行われ、その結論が RFP（Phase 0）である。発注者が非エンジニアで RFP を書けない場合は、本ハーネスが構想から RFP を起こす（`rfp-authoring` Skill）。本ハーネスは RFP 分析（Phase 1）でそれを確認し、「要件定義工程」を Phase 2（要件定義）・Phase 3（要件レビュー）として行う。「基本設計（外部設計）」以降は後工程（本ハーネスの範囲外）である。
 
 ## 本ハーネスのフェーズ
 
 | Phase | 内容 | 担当 | 主な成果物 |
 |-------|------|------|-----------|
-| 0 | RFP 配置 | ユーザー | `docs/00-inputs/`（原本）、`docs/01-rfp/extracted/`（抽出テキスト） |
+| 0 | RFP 準備 | rfp-writer（構想から作成）／ユーザー（持ち込み） | `docs/01-rfp/rfp.md`（作成した RFP）または `docs/00-inputs/`（原本）と `docs/01-rfp/extracted/` |
 | 1 | RFP 分析 | requirements-architect → PM 確認 | `docs/01-rfp/rfp-analysis.md`、`docs/00-inputs/INDEX.md`、初版 `open-questions.md`、`docs/99-pm/document-set.md` |
 | 2 | 要件定義 | requirements-architect | `docs/03-requirements/` 一式（モード A は任意で proposal.md） |
 | 3 | 要件レビュー | requirements-reviewer | `docs/03-requirements/reviews/`（差し戻しは最大 5 ループ） |

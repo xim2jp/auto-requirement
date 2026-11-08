@@ -97,7 +97,7 @@ def load_sources(root: Path) -> dict[str, list]:
         d = root / rel
         if d.is_dir():
             for p in sorted(d.glob("*.md")):
-                if p.name in ("README.md", "INDEX.md"):
+                if p.name in ("README.md", "INDEX.md", "concept.md"):  # concept.md は構想の聞き取り記録（社内用）
                     continue
                 out[p.name] = md.parse_file(p)
                 SOURCE_PATHS[p.name] = p

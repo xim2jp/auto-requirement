@@ -186,8 +186,9 @@ def table_borders(table, color: str):
 # --------------------------------------------------------------------------- builder
 
 class WordBuilder:
-    def __init__(self, prof: dict, root: Path):
+    def __init__(self, prof: dict, root: Path, spec: dict | None = None):
         self.prof, self.root = prof, root
+        self.w = spec or prof["word"]  # この文書の仕様（kind・title・main・appendices・issuer・front）
         self.t = prof["theme"]
         self.doc = Document()
         self.namer = None
@@ -252,7 +253,7 @@ class WordBuilder:
         hp.paragraph_format.tab_stops.add_tab_stop(w, WD_TAB_ALIGNMENT.RIGHT)
         r = hp.add_run(p["confidentiality"])
         set_run_font(r, self.t["font_latin_heading"], self.t["font_heading"], 8, True, "C00000")
-        r = hp.add_run(f"\t{self.prof['word']['title']}｜{p['name']}")
+        r = hp.add_run(f"\t{self.w['title']}｜{p['name']}")
         set_run_font(r, self.t["font_latin_heading"], self.t["font_heading"], 8, False, self.t["muted"])
         par_border(hp, "bottom", self.t["accent"], 4, 1)
 
@@ -486,7 +487,7 @@ class WordBuilder:
 
     def blocks(self, blocks: list, level_shift: int):
         """level_shift: Markdown の見出しレベルから引く数（H2→Heading 1 なら 1）。"""
-        wide = self.prof["word"].get("landscape_table_columns", 8)
+        wide = self.w.get("landscape_table_columns", self.prof["word"].get("landscape_table_columns", 8))
         last_heading = None
         i = 0
         while i < len(blocks):
@@ -516,13 +517,17 @@ class WordBuilder:
     # ---- front matter
     def cover(self):
         p, t = self.prof["project"], self.t
-        w = self.prof["word"]
+        w = self.w
+        by_client = w.get("issuer") == "client"  # RFP：発注者が発行する文書（宛名なし・発行者＝発注者）
         for _ in range(6):
             self.doc.add_paragraph()
         bar = self.doc.add_paragraph()
         par_border(bar, "top", t["primary"], 36, 1)
         cl = self.doc.add_paragraph()
-        r = cl.add_run(p["client"] + "　御中" if p.get("client") and not p["client"].startswith("（") else p.get("client", ""))
+        if by_client:
+            r = cl.add_run(p.get("client", ""))
+        else:
+            r = cl.add_run(p["client"] + "　御中" if p.get("client") and not p["client"].startswith("（") else p.get("client", ""))
         set_run_font(r, t["font_latin_heading"], t["font_heading"], 14, False, t["muted"])
         tp = self.doc.add_paragraph()
         tp.paragraph_format.space_before = Pt(12)
@@ -535,12 +540,19 @@ class WordBuilder:
             st = self.doc.add_paragraph()
             r = st.add_run(w["subtitle"])
             set_run_font(r, t["font_latin_heading"], t["font_heading"], 13, False, t["muted"])
+        if getattr(self, "intro_text", ""):  # 付録文書：冒頭説明を表紙に置く（説明だけのページを作らない）
+            ip = self.doc.add_paragraph()
+            ip.paragraph_format.space_before = Pt(10)
+            r = ip.add_run(self.intro_text)
+            set_run_font(r, t["font_latin_body"], t["font_body"], 10.5, False, t["muted"])
         bar2 = self.doc.add_paragraph()
         par_border(bar2, "bottom", t["accent"], 8, 1)
-        for _ in range(8):
+        for _ in range(5 if getattr(self, "intro_text", "") else 8):
             self.doc.add_paragraph()
         info = [("文書番号", p.get("doc_number") or "—"), ("版数", f"第 {p['version']} 版（{p.get('status') or ''}）"),
                 ("発行日", p["date"]), ("作成", p["vendor"]), ("機密区分", p["confidentiality"])]
+        if by_client:
+            info[3] = ("発行", p.get("client") or "")
         tb = self.doc.add_table(rows=len(info), cols=2)
         tb.alignment = WD_TABLE_ALIGNMENT.RIGHT
         table_borders(tb, "BFBFBF")
@@ -614,17 +626,21 @@ class WordBuilder:
         self.doc.add_paragraph().add_run().add_break(WD_BREAK.PAGE)
 
     # ---- assemble
-    def build(self, sources: dict[str, list], out_dir: Path) -> Path:
-        w, o = self.prof["word"], self.prof["output"]
+    def build(self, sources: dict[str, list], out_dir: Path, names: dict[str, str] | None = None) -> Path:
+        w, o = self.w, self.prof["output"]
         strip = o.get("strip_internal_sections", [])
-        mapping = {w["main"]: "本書"}
-        apps = [a for a in w.get("appendices", []) if a["source"] in sources]
+        bundled = w.get("appendix_mode", "separate") == "bundled"
+        apps = [a for a in w.get("appendices", []) if a["source"] in sources] if bundled else []
+        mapping = dict(names or {})
         for n, a in enumerate(apps, start=1):
             mapping[a["source"]] = f"別紙{n}「{a['title']}」"
+        mapping[w["main"]] = "本書"
         self.namer = common.DocNamer(mapping)
 
+        self.intro_text = self._intro_text(sources[w["main"]]) if w.get("intro_from_preamble") and w["main"] in sources else ""
         self.cover()
-        self.approvals_and_revisions()
+        if w.get("front") != "light":
+            self.approvals_and_revisions()
         self.toc()
 
         if w["main"] in sources:
@@ -637,12 +653,7 @@ class WordBuilder:
             else:
                 self.doc.add_paragraph().add_run().add_break(WD_BREAK.PAGE)
             self.heading(f"別紙{n}　{a['title']}", 1)
-            for q in common.preamble_quote(sources[a["source"]])[:1]:
-                # 「この文書について」の 1 段落目だけを別紙の冒頭説明として残す
-                if q.blocks and isinstance(q.blocks[0], md.Para):
-                    text = md.plain(q.blocks[0].runs).replace("この文書について：", "").strip()
-                    text = text.split("。")[0] + "。" if "。" in text else text
-                    self.quote(md.Quote([md.Para([md.Run(text)])]))
+            self._preamble_intro(sources[a["source"]])
             self.blocks(blocks, level_shift=0)
 
         cp = self.doc.core_properties
@@ -661,7 +672,60 @@ class WordBuilder:
         return path
 
 
-def build(prof: dict, root: Path, sources: dict[str, list], out_dir: Path) -> tuple[Path, dict]:
-    b = WordBuilder(prof, root)
-    path = b.build(sources, out_dir)
-    return path, b.stats
+    @staticmethod
+    def _intro_text(blocks: list) -> str:
+        """「この文書について」の 1 文目（作業用の説明は落とす）。"""
+        for q in common.preamble_quote(blocks)[:1]:
+            if q.blocks and isinstance(q.blocks[0], md.Para):
+                text = md.plain(q.blocks[0].runs).replace("この文書について：", "").strip()
+                return text.split("。")[0] + "。" if "。" in text else text
+        return ""
+
+    def _preamble_intro(self, blocks: list):
+        text = self._intro_text(blocks)
+        if text:
+            self.quote(md.Quote([md.Para([md.Run(text)])]))
+
+
+def plan(prof: dict, sources: dict[str, list]) -> list[dict]:
+    """生成する Word 文書の一覧（spec の配列）。RFP（あれば）→ 要件定義書 → 別紙（separate のとき）の順。"""
+    specs: list[dict] = []
+    w = prof["word"]
+    rw = prof.get("rfp_word") or {}
+    if rw.get("enabled", True) and rw.get("main") in sources:
+        specs.append({**w, "appendices": [], "appendix_mode": "bundled", **rw, "_role": "rfp"})
+    if w.get("enabled", True):
+        specs.append({**w, "_role": "main"})
+        if w.get("appendix_mode", "separate") == "separate":
+            apps = [a for a in w.get("appendices", []) if a["source"] in sources]
+            for n, a in enumerate(apps, start=1):
+                specs.append({**w, "kind": f"別紙{n}_{a['title']}", "title": f"{w['title']} 別紙{n}",
+                              "subtitle": a["title"], "main": a["source"], "appendices": [],
+                              "front": "light", "intro_from_preamble": True, "_role": "appendix"})
+    return specs
+
+
+def doc_names(prof: dict, sources: dict[str, list]) -> dict[str, str]:
+    """本文中のファイル名 → 納品文書での呼び名（文書ごとに自分自身は「本書」に上書きする）。"""
+    w = prof["word"]
+    names = {w["main"]: f"{w['title']}（本編）"}
+    apps = [a for a in w.get("appendices", []) if a["source"] in sources]
+    for n, a in enumerate(apps, start=1):
+        names[a["source"]] = f"別紙{n}「{a['title']}」"
+    rw = prof.get("rfp_word") or {}
+    if rw.get("main") in sources:
+        names[rw["main"]] = rw.get("title", "要件定義要求書（RFP）")
+    return names
+
+
+def build(prof: dict, root: Path, sources: dict[str, list], out_dir: Path) -> tuple[list[Path], dict]:
+    names = doc_names(prof, sources)
+    paths: list[Path] = []
+    stats = {"documents": 0, "tables": 0, "figures": 0, "mermaid_source": 0, "landscape_sections": 0}
+    for spec in plan(prof, sources):
+        b = WordBuilder(prof, root, spec)
+        paths.append(b.build(sources, out_dir, names))
+        stats["documents"] += 1
+        for k, v in b.stats.items():
+            stats[k] = stats.get(k, 0) + v
+    return paths, stats

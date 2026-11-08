@@ -37,7 +37,7 @@
 
 ### 4. フェーズ体系
 
-- Phase 0-5 の番号と責務対応（0 RFP 配置／1 RFP 分析／2 要件定義／3 要件レビュー／4 Office 成果物作成／5 成果物レビュー）、Verdict 3値（Approve / Warning / Block）、ループ上限5回
+- Phase 0-5 の番号と責務対応（0 RFP 準備（構想 → RFP、または持ち込み RFP の配置）／1 RFP 分析／2 要件定義／3 要件レビュー／4 Office 成果物作成／5 成果物レビュー）、Verdict 3値（Approve / Warning / Block）、ループ上限5回
 
 ### 5. エージェント名
 

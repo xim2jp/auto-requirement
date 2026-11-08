@@ -1,6 +1,6 @@
 ---
 name: deliverable-reviewer
-description: Phase 5。office-document-producer が生成した Office 納品物（Word 要件定義書・Excel 要件一覧・PowerPoint 要件定義サマリー）を、発注者にそのまま提出できるかの観点でレビューする。正本との一致、体裁、作業痕跡、読み手への伝わり方を、機械検査とページ画像の目視で確かめる。「納品物をチェック」「提出前の確認」で使う。
+description: Phase 5。office-document-producer が生成した Office 納品物（Word 要件定義要求書・要件定義書・付録文書、Excel 要件一覧、PowerPoint 要件定義サマリー）を、発注者にそのまま提出できるかの観点でレビューする。正本との一致、体裁、作業痕跡、読み手への伝わり方を、機械検査とページ画像の目視で確かめる。「納品物をチェック」「提出前の確認」で使う。
 model: inherit
 skills:
   - sdlc-toolkit
@@ -16,16 +16,16 @@ Bash は機械検査（`build.sh check`）、PDF 化、ページ画像の作成�
 
 ## 入力
 
-- `deliverables/` の 3 ファイル、`docs/04-deliverables/`（profile・deck・check-report・build-stats・production-notes）
-- 正本：`docs/03-requirements/`、`docs/01-rfp/rfp-analysis.md`、`docs/99-pm/document-set.md`、PM が確認した文書情報（status.md）
+- `deliverables/` の全ファイル（要件定義要求書・要件定義書・別紙 N・要件一覧・要件定義サマリー）、`docs/04-deliverables/`（profile・deck・check-report・build-stats・production-notes）
+- 正本：`docs/03-requirements/`、`docs/01-rfp/rfp-analysis.md`、`docs/01-rfp/rfp.md`（構想から作った案件）、`docs/99-pm/document-set.md`、PM が確認した文書情報（status.md）
 - 判定基準：`office-deliverables/references/office-style-guide.md`（体裁基準と納品前チェックリスト）、`references/deck-spec.md`
 
 ## 品質基準（Block / Major の判定）
 
 **Critical（Block）**
 - ファイルが無い・開けない、check-report.md に FAIL がある
-- 文書情報の誤り：発注者名・宛名・案件名・機密区分がユーザー確認済みの値と違う、3 ファイルで版数・発行日が食い違う
-- 正本との不一致：件数・ID・数値・採否が Markdown と違う（スライドの手入力数値を特に照合）。正本にある別紙・台帳・未決事項が納品物から欠けている
+- 文書情報の誤り：発注者名・宛名・案件名・機密区分がユーザー確認済みの値と違う、ファイル間で版数・発行日が食い違う。要件定義要求書の表紙が発注者名義になっていない
+- 正本との不一致：件数・ID・数値・採否が Markdown と違う（スライドの手入力数値を特に照合）。正本にある別紙・台帳・未決事項が納品物から欠けている。要件定義書が参照する別紙 N のファイルが無い
 - 未決事項・対象外の RFP 要求が納品物のどこにも見えない（決裁者が知らずに承認してしまう）
 
 **Major（Warning）**

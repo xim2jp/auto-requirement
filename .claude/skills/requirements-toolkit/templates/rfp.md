@@ -1,6 +1,6 @@
 # RFP（提案依頼書）の標準構成
 
-> この文書について：本書は、提案依頼書（RFP）に記載すべき標準的な項目を章立てで示したものである。本ハーネスでは 2 つの用途に使う。① Phase 1 の RFP 分析で、受領した RFP の欠落を見つけるチェックリスト（`rfp-analysis.md` §4 の行はこの章立てに対応する）。② ユーザー（発注者）が RFP を書くときの雛形（書いたものは `docs/00-inputs/rfp.md` に置く）。各章の「記載が無い場合」は、RFP 分析で判定＝欠落として OQ にする目安である。
+> この文書について：本書は、提案依頼書（RFP）に記載すべき標準的な項目を章立てで示したものである。本ハーネスでは 2 つの用途に使う。① Phase 1 の RFP 分析で、受領した RFP の欠落を見つけるチェックリスト（`rfp-analysis.md` §4 の行はこの章立てに対応する）。② 構想から RFP を作るときの章立て（提出用の本文テンプレートは `rfp-authoring/templates/rfp-document.md`）。各章の「記載が無い場合」は、RFP 分析で判定＝欠落として OQ にする目安である。
 > 関連文書：RFP 分析表（docs/01-rfp/rfp-analysis.md）／RFP 分析の手順（`references/rfp-analysis.md`）
 > 記述規約：`.claude/skills/requirements-toolkit/references/writing-rules.md`
 

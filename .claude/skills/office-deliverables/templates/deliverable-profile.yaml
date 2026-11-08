@@ -37,11 +37,18 @@ output:
   filename_pattern: "{kind}_{project}_v{version}"   # 使える変数：kind / project / version / date
   mermaid: auto                         # auto（mmdc があれば画像化）／npx（npx で取得して画像化）／source／off
 
+rfp_word:                               # 要件定義要求書（RFP）。docs/01-rfp/rfp.md がある案件だけ生成される
+  enabled: true
+  title: 要件定義要求書（RFP）
+  subtitle: ""
+  issuer: client                        # 発注者名義の表紙（宛名なし・発行＝発注者）
+
 word:
   title: 要件定義書
   subtitle: ""                          # 例：「〇〇業務の電子化に関する要件定義」
   landscape_table_columns: 8            # この列数以上の表は横向きページ
   main: requirements.md
+  appendix_mode: separate               # separate：別紙ごとに単独の Word（付録文書）／bundled：要件定義書の末尾に綴じ込む
   appendices:                           # 別紙の順序とタイトル。存在しないファイルは自動で飛ばし、番号を詰める
     - {title: 業務要件一覧, source: business-requirements.md}
     - {title: ユースケース一覧, source: use-cases.md}

@@ -57,25 +57,27 @@ def run(prof: dict, root: Path, sources: dict, out_dir: Path, build_stats: dict 
     warn: list[str] = []
     info: list[str] = []
 
-    # ---------------- Word
-    if prof["word"].get("enabled", True):
-        p = out_dir / out_name(prof, prof["word"]["kind"], "docx")
+    # ---------------- Word（RFP・要件定義書・別紙。docx_builder.plan と同じ一覧を検査する）
+    import docx_builder  # noqa: PLC0415（循環を避けて遅延 import）
+    for spec in docx_builder.plan(prof, sources):
+        p = out_dir / out_name(prof, spec["kind"], "docx")
+        label = f"Word「{spec['kind']}」"
         if not p.exists():
-            fail.append(f"Word が無い：{p.name}")
-        else:
-            try:
-                doc = Document(p)
-                xml = doc.element.xml
-                if "TOC \\o" not in xml:
-                    fail.append("Word：目次フィールドが無い")
-                sec = doc.sections[-1]
-                if not sec.footer.paragraphs or "PAGE" not in sec.footer._element.xml:
-                    fail.append("Word：フッターにページ番号が無い")
-                heads = [x for x in doc.paragraphs if x.style.name.startswith("Heading")]
-                info.append(f"Word：見出し {len(heads)}・表 {len(doc.tables)}・セクション {len(doc.sections)}")
-                _scan(_docx_text(doc), "Word", warn)
-            except Exception as e:  # noqa: BLE001
-                fail.append(f"Word が開けない：{e}")
+            fail.append(f"{label} が無い：{p.name}")
+            continue
+        try:
+            doc = Document(p)
+            xml = doc.element.xml
+            if "TOC \\o" not in xml:
+                fail.append(f"{label}：目次フィールドが無い")
+            sec = doc.sections[-1]
+            if not sec.footer.paragraphs or "PAGE" not in sec.footer._element.xml:
+                fail.append(f"{label}：フッターにページ番号が無い")
+            heads = [x for x in doc.paragraphs if x.style.name.startswith("Heading")]
+            info.append(f"{label}：見出し {len(heads)}・表 {len(doc.tables)}・セクション {len(doc.sections)}")
+            _scan(_docx_text(doc), label, warn)
+        except Exception as e:  # noqa: BLE001
+            fail.append(f"{label} が開けない：{e}")
 
     # ---------------- Excel
     if prof["excel"].get("enabled", True):

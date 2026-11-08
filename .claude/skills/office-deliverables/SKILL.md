@@ -1,17 +1,19 @@
 ---
 name: office-deliverables
-description: 要件定義の Markdown 正本から、発注者に納品できる Microsoft Office 成果物（Word 要件定義書・Excel 要件一覧・PowerPoint 要件定義サマリー）を生成・検査する。RFP 原本（docx/xlsx/pptx）のテキスト化も行う。成果物プロファイル・スライド構成の書き方、日本のビジネス文書の体裁基準、機械検査と目視確認の手順を収録。「Word にして」「Excel で一覧」「説明資料」「納品物」「成果物を作る」「RFP を読み込む」で参照。
+description: RFP と要件定義の Markdown 正本から、発注者に納品できる Microsoft Office 成果物（Word 要件定義要求書（RFP）・要件定義書・付録文書、Excel 要件一覧、PowerPoint 要件定義サマリー）を生成・検査する。RFP 原本（docx/xlsx/pptx）のテキスト化も行う。成果物プロファイル・スライド構成の書き方、日本のビジネス文書の体裁基準、機械検査と目視確認の手順を収録。「Word にして」「Excel で一覧」「説明資料」「納品物」「成果物を作る」「RFP を読み込む」で参照。
 ---
 
 # Office Deliverables — 要件定義の納品物を Office で出す
 
 Markdown（`docs/01-rfp/`・`docs/03-requirements/`）が**正本**、Office ファイル（`deliverables/`）は正本から機械生成する**納品物**である。納品物の誤りは Markdown を直して再生成する。Office ファイルを手で直すと次の再生成で消え、正本との食い違いが残る（`deliverables/` への Write/Edit は hook が拒否する）。
 
-## 1. 3 つの納品物
+## 1. 納品物
 
 | 納品物 | 読み手と用途 | 構成 | 出典 |
 |-------|-------------|------|------|
-| **要件定義書**（.docx） | 発注者の担当・決裁者。合意と承認の正式文書 | 表紙 → 承認欄・改訂履歴 → 目次 → 本編（requirements.md）→ 別紙 1〜7（BZ・UC・NFR・ROLE・用語・OQ・RFP 分析） | requirements.md ほか全文書 |
+| **要件定義要求書（RFP）**（.docx） | 発注者（名義人）と要件定義の担当。何を依頼するかの文書 | 表紙（宛名なし・発行＝発注者）→ 承認欄・改訂履歴 → 目次 → 本文 | `docs/01-rfp/rfp.md`（構想から作った案件だけ。持ち込み RFP の案件では作らない） |
+| **要件定義書**（.docx） | 発注者の担当・決裁者。合意と承認の正式文書 | 表紙 → 承認欄・改訂履歴 → 目次 → 本編（requirements.md） | requirements.md |
+| **付録文書**（別紙 N の .docx） | 要件定義書の詳細を参照する担当者 | 表紙 → 目次 → 冒頭説明 → 本文（BZ・UC・NFR・ROLE・用語・OQ・RFP 分析の 7 本）。`word.appendix_mode: bundled` にすると要件定義書の末尾に綴じ込む | 各文書 |
 | **要件一覧**（.xlsx） | 発注者・開発側の担当。要件の管理台帳・突合・進捗確認 | 表紙 → 目次 → 集計（数式連動）→ ID 台帳（RFP・BZ・UC・NFR・ROLE・IF・SH・用語・OQ・D）→ トレーサビリティ（RFP → BZ → UC） | 各文書の ID 付きの表 |
 | **要件定義サマリー**（.pptx） | 決裁者・関係者。説明会・承認会議で 15〜20 分で説明 | 表紙 → 目次 → 章扉 → 結論ファーストの本文スライド → 今後の進め方 | `docs/04-deliverables/summary-deck.yaml` |
 
@@ -20,7 +22,7 @@ Markdown（`docs/01-rfp/`・`docs/03-requirements/`）が**正本**、Office フ
 ```bash
 # RFP 原本（docx/xlsx/pptx）を docs/01-rfp/extracted/ にテキスト化（Phase 1 の最初）
 bash .claude/skills/office-deliverables/scripts/build.sh extract
-# 3 種を生成し、機械検査まで（Phase 4）。--pdf で LibreOffice があれば PDF も
+# 全納品物を生成し、機械検査まで（Phase 4）。--pdf で LibreOffice があれば PDF も
 bash .claude/skills/office-deliverables/scripts/build.sh all
 # 個別生成／検査のみ
 bash .claude/skills/office-deliverables/scripts/build.sh docx|xlsx|pptx|check
@@ -43,7 +45,7 @@ bash .claude/skills/office-deliverables/scripts/build.sh docx|xlsx|pptx|check
 - **見出し**：requirements.md の `##` が Word の見出し 1、別紙は「別紙N タイトル」が見出し 1 で文書内の `##` が見出し 2。番号は Markdown の見出し文字列をそのまま使う
 - **前書き**：各文書の H1 と最初の `##` より前（「この文書について」・作成日など）は本文から除き、表紙と承認欄に置き換える。別紙の冒頭には「この文書について」の**最初の 1 文**だけを説明として残す。だから 1 文目は発注者が読んで分かる文にする
 - **社内向けの節**：見出しに `Self-Check`・`Handoff` を含む節は納品物から除く（`output.strip_internal_sections`）
-- **ファイル名の置換**：本文中の `business-requirements.md` などは「別紙1「業務要件一覧」」に、`requirements.md` は「本書」に置き換わる
+- **ファイル名の置換**：本文中の `business-requirements.md` などは「別紙1「業務要件一覧」」に、`rfp.md` は「要件定義要求書（RFP）」に、`requirements.md` は要件定義書の中では「本書」、他の文書では「要件定義書（本編）」に置き換わる
 - **表**：ヘッダー行の色・繰返し・縞・列幅の自動配分。8 列以上の表は見出しごと横向きページに置く。表は 1 列目を ID にする（Excel 台帳の抽出キー）
 - **Excel 台帳**：シート定義の `id_prefix` で始まる 1 列目を持つ行を文書全体から集める。列名は括弧内の補足を無視して揃え、列構成が大きく違う表（目的系 BZ と手段系 BZ など）は別シートにする。MoSCoW・採否・ステータス・判定の列には入力規則と色分けが付く
 - **Mermaid**：`mmdc`（@mermaid-js/mermaid-cli）があれば画像化、無ければソース枠で載る。発注者向けには画像化を推奨（`--mermaid npx` で npx 経由の取得も可）

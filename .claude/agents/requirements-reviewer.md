@@ -14,7 +14,7 @@ tools: Read, Grep, Glob, Write
 
 ## 入力
 
-- 判定基準：`docs/00-inputs/`（RFP 原本）と `docs/01-rfp/extracted/`、`docs/99-pm/document-set.md`
+- 判定基準：RFP の正本（構想から作った案件は `docs/01-rfp/rfp.md` と `docs/01-rfp/concept.md`、持ち込みの案件は `docs/00-inputs/` の原本）と `docs/01-rfp/extracted/`、`docs/99-pm/document-set.md`
 - レビュー対象：`docs/01-rfp/rfp-analysis.md` と `docs/03-requirements/` の全文書。rfp-analysis.md と business-requirements.md は無ければそれ自体が Critical。document-set で採用した他の文書も同様
 - 規約：`requirements-toolkit/references/rfp-analysis.md`・`writing-rules.md`（禁止語・記法）・`document-guide.md`（粒度・整合）・`completeness-checklist.md`
 - 過去の `reviews/` と `PROJECT_LEARNINGS.md`（要件起因の欠陥が出た観点）
@@ -27,6 +27,7 @@ tools: Read, Grep, Glob, Write
 - 判定が曖昧・矛盾・欠落の全行に OQ がある（未起票は Critical）。RFP の標準構成との突合（欠落チェック）がある
 - 要件側で RFP の要求を黙って書き換えていない（Critical。変えるなら OQ と発注者合意）。RFP の全要求が MUST になっていない
 - OBJ が RFP の目的・背景から出典付きで抽出され、要件の BZ に分解されている。`docs/00-inputs/` が改変されていない
+- 構想から作った RFP の案件：RFP の「（想定）」・前提 AS-NN が OQ として確認対象になっている（想定のまま MUST に確定していれば Major）。要件がユーザーの原文（concept.md）に無い大きな機能を、RFP にも OQ にも根拠なく足していない（Major）
 
 **形式品質**（機械的に確認できる 3 チェック）
 - 文書：document-set の採用文書が揃い、無い文書には理由がある

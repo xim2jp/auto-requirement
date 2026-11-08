@@ -1,5 +1,5 @@
 #!/bin/bash
-# setup.sh - RFP Requirements Framework 初期セットアップ（RFP 起点の要件定義＋Office 納品物）
+# setup.sh - RFP Requirements Framework 初期セットアップ（構想 → RFP → 要件定義＋Office 納品物）
 
 set -e
 
@@ -84,22 +84,22 @@ echo "✅ docs/ 構造作成完了"
 # docs/00-inputs/README.md（RFP の置き方）
 if [ ! -f "docs/00-inputs/README.md" ]; then
   cat > docs/00-inputs/README.md << 'EOF2'
-# docs/00-inputs/ — RFP と参考資料の置き場（Phase 0）
+# docs/00-inputs/ — 資料の置き場（なくても始められます）
 
-ここは**あなた（ユーザー）が資料を置く場所**です。エージェントはこのフォルダの資料を読みますが、書き換えません（`INDEX.md` だけをエージェントが更新します）。
+**何も用意しなくて大丈夫です。** Claude Code を起動して、作りたいシステムのことを思いつくままに話しかけてください（例：「美容室の予約をスマホで受けられるようにしたい。今は電話と紙の台帳で…」）。質問に答えていくと、こちらで「依頼内容のまとめ（RFP）」を作り、そこから要件定義書などの書類を作ります。
 
-| 置くもの | ファイル名（推奨） | 必須か |
-|---------|------------------|--------|
-| RFP（提案依頼書・要件定義依頼書・システム化企画書） | `rfp.md` / `rfp.docx` / `rfp.pdf` / `rfp.xlsx` など。複数ファイル可 | **必須** |
-| 参考資料（現行の業務フロー・帳票・画面、議事録、規程、現行システムの資料） | `materials/` 配下 | 任意。あると現状把握が速くなります |
+ここ（`docs/00-inputs/`）は、**手元に資料があれば置く場所**です。置いた資料は読むだけで、書き換えません。
 
-- Word・Excel・PowerPoint の RFP はそのまま置けます（エージェントがテキスト化して読みます）
-- RFP がまだ無い場合は、雛形 `.claude/skills/requirements-toolkit/templates/rfp.md` をコピーして `rfp.md` を書くか、Claude Code に「RFP を一緒に作りたい」と話しかけてください
-- RFP の改訂版を受け取ったら、旧版を残したまま版数付きのファイル名（`rfp_v2.docx` など）で追加してください
+| 置けるもの | 例 | 必須か |
+|-----------|----|--------|
+| 構想のメモ | 作りたいもののメモ、手書きのスケッチの写真、参考にしたいサービスの URL | 任意 |
+| 今の業務の資料 | 使っている Excel・紙の帳票の写真・業務の手順書 | 任意。あると話が早くなります |
+| すでに RFP（提案依頼書）がある場合 | `rfp.docx` / `rfp.pdf` など | 任意。あれば、それをもとに進めます |
 
-置いたら Claude Code で「RFP を置いたので始めて」と話しかけてください。
+- Word・Excel・PowerPoint・PDF・画像のまま置けます
+- 置いたら Claude Code で「資料を置きました」と一言伝えてください
 
-流れ：Phase 1 RFP 分析 →（確認）→ 2 要件定義（ヒアリング）→ 3 要件レビュー → 4 Office 成果物作成 → 5 成果物レビュー → 納品（`deliverables/` に Word・Excel・PowerPoint）
+できあがる書類（`deliverables/` フォルダ）：要件定義要求書（RFP）・要件定義書・付録文書（Word）、要件一覧（Excel）、要件定義サマリー（PowerPoint）
 EOF2
   echo "✅ docs/00-inputs/README.md 配置"
 fi
@@ -165,19 +165,19 @@ if [ ! -f "docs/99-pm/status.md" ]; then
 - **開始日**: $TODAY
 - **最終更新**: $TODAY
 - **フレームワーク版**: $FRAMEWORK_VERSION
-- **現在フェーズ**: Phase 0 / 5（RFP 配置待ち）
+- **現在フェーズ**: Phase 0 / 5（構想の聞き取り待ち）
 - **納品版数**: -
-- **次のアクション**: docs/00-inputs/ に RFP を置き、Claude Code で「RFP を置いたので始めて」と話しかける
+- **次のアクション**: Claude Code に作りたいシステムのことを話しかける（RFP があれば docs/00-inputs/ に置いて「RFP を置いたので始めて」）
 
 ## フェーズ別ステータス
 
 | Phase | 名称 | ステータス | 担当 | 成果物 | Verdict | ループ | 完了日 |
 |-------|------|----------|------|--------|---------|-------|--------|
-| 0 | RFP 配置（ユーザー） | ⏳ | （ユーザー） | docs/00-inputs/ | - | - | - |
+| 0 | RFP 準備（構想 → RFP） | ⏳ | rfp-writer | docs/01-rfp/concept.md, docs/01-rfp/rfp.md | - | - | - |
 | 1 | RFP 分析 | ⏳ | requirements-architect | docs/01-rfp/rfp-analysis.md, docs/00-inputs/INDEX.md | - | - | - |
 | 2 | 要件定義 | ⏳ | requirements-architect | docs/03-requirements/ | - | - | - |
 | 3 | 要件レビュー | ⏳ | requirements-reviewer | docs/03-requirements/reviews/ | - | - | - |
-| 4 | Office 成果物作成 | ⏳ | office-document-producer | deliverables/, docs/04-deliverables/ | - | - | - |
+| 4 | Office 成果物作成 | ⏳ | office-document-producer | deliverables/（要件定義要求書・要件定義書・付録文書・要件一覧・要件定義サマリー）, docs/04-deliverables/ | - | - | - |
 | 5 | 成果物レビュー | ⏳ | deliverable-reviewer | docs/04-deliverables/reviews/ | - | - | - |
 
 ## 凡例: ⏳ 待機 / 🚧 進行中 / 🔄 レビュー中 / 🔁 再レビュー / ⛔ Block / ✅ 完了 / ⚠️ エスカレーション / 📦 納品済
@@ -230,16 +230,16 @@ echo ""
 echo "🎉 セットアップ完了！"
 echo ""
 echo "📂 配置されたファイル:"
-echo "  - .claude/                  フレームワーク本体（5 エージェント + 3 Skill + hooks）"
+echo "  - .claude/                  フレームワーク本体（6 エージェント + 4 Skill + hooks）"
 echo "  - .framework-version        $FRAMEWORK_VERSION"
 echo "  - CLAUDE.md                 Claude Code メインコンテキスト（PM 役）"
 echo "  - PROJECT_LEARNINGS.md      案件知見の記録"
-echo "  - docs/00-inputs/           ← ここに RFP を置く"
-echo "  - deliverables/             Office 納品物の出力先（Word・Excel・PowerPoint）"
+echo "  - docs/00-inputs/           資料があれば置く場所（なくても始められます）"
+echo "  - deliverables/             できあがる書類（Word・Excel・PowerPoint）"
 echo ""
 echo "🚀 次のステップ:"
-echo "  1. docs/00-inputs/ に RFP（.md / .docx / .xlsx / .pdf など）と参考資料を置く"
-echo "  2. claude を起動"
-echo "  3. 「RFP を置いたので始めて」と話しかける"
+echo "  1. claude を起動"
+echo "  2. 作りたいシステムのことを話しかける（例：「予約をスマホで受けられるようにしたい」）"
+echo "     RFP がすでにあれば docs/00-inputs/ に置いて「RFP を置いたので始めて」"
 echo ""
 echo "💡 気付きは PROJECT_LEARNINGS.md にその日のうちに記録し、月次で本体へ還流"

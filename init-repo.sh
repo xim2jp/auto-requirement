@@ -48,7 +48,7 @@ git add .
 git commit -m "Initial: RFP Requirements Framework $(head -n1 templates/project-init/.framework-version)
 
 RFP 起点の要件定義と Office 納品物（Word・Excel・PowerPoint）の作成までを行う
-Claude Code ハーネス（5 エージェント + 3 Skill + hooks）。
+Claude Code ハーネス（6 エージェント + 4 Skill + hooks）。
 派生元の全工程 SDLC フレームワーク v0.18.0 から派生。詳細は README.md / CHANGELOG.md。
 "
 

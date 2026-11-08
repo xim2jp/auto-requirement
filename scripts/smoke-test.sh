@@ -1,6 +1,6 @@
 #!/bin/bash
 # smoke-test.sh - 配布物が「そのまま動く」かを通しで確かめる。
-#   new-project.sh → setup.sh（.venv 作成）→ テンプレートを要件定義の正本として配置 → build.sh extract / all → 機械検査
+#   new-project.sh → setup.sh（.venv 作成）→ テンプレートを RFP・要件定義の正本として配置 → build.sh extract / all → 機械検査
 # CI（framework-checks.yml）とリリース前の手元確認で使う。失敗は exit 1。
 # 使い方: bash scripts/smoke-test.sh [作業ディレクトリ]（省略時は一時ディレクトリ。終了時に削除）
 
@@ -24,6 +24,7 @@ T=.claude/skills/requirements-toolkit/templates
 mkdir -p docs/01-rfp docs/03-requirements
 cp "$T/rfp.md" docs/00-inputs/rfp.md
 cp "$T/rfp-analysis.md" docs/01-rfp/rfp-analysis.md 2>/dev/null || true
+cp .claude/skills/rfp-authoring/templates/rfp-document.md docs/01-rfp/rfp.md   # 構想から作った RFP の代わり
 cp "$T/requirements-doc.md" docs/03-requirements/requirements.md
 for f in business-requirements use-cases non-functional permissions-matrix glossary open-questions decision-log; do
   cp "$T/$f.md" docs/03-requirements/
@@ -32,8 +33,9 @@ cp .claude/skills/office-deliverables/templates/summary-deck.yaml docs/04-delive
 
 bash .claude/skills/office-deliverables/scripts/build.sh extract
 bash .claude/skills/office-deliverables/scripts/build.sh all
-n=$(ls deliverables/*.docx deliverables/*.xlsx deliverables/*.pptx 2>/dev/null | wc -l)
-[ "$n" = "3" ] || { echo "❌ 納品物が 3 ファイルそろっていません（$n）"; exit 1; }
+for g in "要件定義要求書_*.docx" "要件定義書_*.docx" "別紙1_*.docx" "別紙7_*.docx" "要件一覧_*.xlsx" "要件定義サマリー_*.pptx"; do
+  ls deliverables/$g >/dev/null 2>&1 || { echo "❌ 納品物がありません：$g"; ls deliverables; exit 1; }
+done
 grep -q '判定：\*\*FAIL' docs/04-deliverables/check-report.md && { cat docs/04-deliverables/check-report.md; exit 1; }
-echo "✅ Office 納品物 3 ファイルを生成（機械検査 FAIL 0。テンプレのため WARN は想定内）"
+echo "✅ Office 納品物を生成：要件定義要求書・要件定義書・別紙 7・要件一覧・サマリー（機械検査 FAIL 0。テンプレのため WARN は想定内）"
 echo "🎉 スモークテスト成功"

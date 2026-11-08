@@ -7,6 +7,24 @@
 
 ## [Unreleased]
 
+## [2.0.0] - 2026-11-08
+
+非エンジニアのユーザーを前提に、入口を「RFP の持ち込み（必須）」から「作りたいシステムの概要を話すだけ」に変えた。Phase 0 で RFP（要件定義要求書）を作り、Office 納品物に要件定義要求書と付録文書（別紙ごとの Word）を加えた。持ち込み RFP の流れはそのまま使える。
+
+### Added
+- **Phase 0 RFP 準備**：`rfp-writer` エージェント（質問作成 → 起草 → 修正）と `rfp-authoring` Skill（非エンジニア向けの聞き取り：最初に確かめる 7 点・質問バンク・規模別の推奨値・RFP 起草規則・セルフチェック、テンプレート `concept.md`・`rfp-document.md`）。成果物は `docs/01-rfp/concept.md`（ユーザーの原文と回答・仮定）と `docs/01-rfp/rfp.md`（RFP の正本）
+- **Office 納品物**：要件定義要求書（RFP）の Word（発注者名義の表紙：宛名なし・発行＝発注者）。付録文書として別紙 1〜7 を単独の Word で出力（`word.appendix_mode: separate`。既定。`bundled` で従来どおり綴じ込み）。別紙の冒頭説明は表紙に置く
+- `sdlc-toolkit` §9「ユーザーとの話し方（非エンジニア前提）」：質問は選択肢と「おまかせ（推奨）」付き、報告は専門用語・ID なし、用語の言い換え表
+- 配布キットに利用者向けの `START_HERE.md`（`templates/kit/`）
+
+### Changed
+- SDLC：Phase 0 を「RFP 配置」から「RFP 準備（構想 → RFP 起草 → RFP の要点のユーザー確認）」に。Phase 1〜5 の番号と内容は維持（PM プレイブック・PM・requirements-architect・各レビュー役・テンプレートを更新）
+- RFP 分析：構想から作った RFP の分析手順（`rfp-analysis.md` §9。「（想定）」と前提 AS-NN は OQ にしてヒアリングで確認、rfp.md の改訂は PM 経由で rfp-writer が版を上げる）
+- requirements-architect のヒアリングと PM の中継：非エンジニア向けの言い換え・選択肢・推奨値を必須に
+- 機械検査：生成した全 Word（要件定義要求書・要件定義書・別紙）を検査。`concept.md` は Office 化の対象外
+- `setup.sh`・案件 `CLAUDE.md`・`docs/00-inputs/README.md`：「何も用意しなくてよい、話しかけるだけ」の案内に
+- `smoke-test.sh`・`build-kit.sh --test`：要件定義要求書と別紙の生成を確認
+
 ## [1.1.0] - 2026-11-08
 
 ### Added

@@ -6,6 +6,7 @@ Phase 1 完了時に PM がユーザーと確定し、`docs/99-pm/document-set.m
 
 | 文書（docs/） | standard（既定） | light（小規模・PoC） | proposal（提案付き） |
 |--------------|:---:|:---:|:---:|
+| 01-rfp/concept.md・rfp.md（構想から作る案件） | ● | ● | ● |
 | 01-rfp/rfp-analysis.md | ● | ● | ● |
 | 03-requirements/requirements.md | ● | ●（§3・§7・§16・§17 は簡略可） | ● |
 | business-requirements.md | ● | ● | ● |
@@ -23,7 +24,9 @@ Phase 1 完了時に PM がユーザーと確定し、`docs/99-pm/document-set.m
 
 | 納品物 | standard | light | proposal |
 |--------|:---:|:---:|:---:|
-| 要件定義書（.docx） | ● | ● | ● |
+| 要件定義要求書（RFP）（.docx。構想から作る案件のみ） | ● | ● | ● |
+| 要件定義書（.docx。本編） | ● | ● | ● |
+| 付録文書（別紙 1〜7 の .docx。`appendix_mode: bundled` なら要件定義書に綴じ込み） | ● | ●（light で作らない文書の別紙は出ない） | ● |
 | 要件一覧（.xlsx） | ● | ○ | ● |
 | 要件定義サマリー（.pptx） | ● | ○ | ●（提案説明を含む構成） |
 

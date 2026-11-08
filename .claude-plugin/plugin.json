@@ -1,7 +1,7 @@
 {
   "name": "rfp-requirements-framework",
-  "version": "1.1.0",
-  "description": "RFP を起点に要件定義を行い、Word 要件定義書・Excel 要件一覧・PowerPoint 要件定義サマリーを納品する要件定義ハーネス（5 エージェント + 3 Skill）",
+  "version": "2.0.0",
+  "description": "作りたいシステムの概要から RFP（要件定義要求書）を作り、要件定義を行って Word（要件定義要求書・要件定義書・付録文書）・Excel 要件一覧・PowerPoint 要件定義サマリーを納品する要件定義ハーネス（6 エージェント + 4 Skill）",
   "author": {
     "name": "RFP Requirements Framework contributors"
   },
@@ -19,7 +19,8 @@
     "./.claude/agents/office-document-producer.md",
     "./.claude/agents/project-manager.md",
     "./.claude/agents/requirements-architect.md",
-    "./.claude/agents/requirements-reviewer.md"
+    "./.claude/agents/requirements-reviewer.md",
+    "./.claude/agents/rfp-writer.md"
   ],
   "skills": [
     "./.claude/skills/"

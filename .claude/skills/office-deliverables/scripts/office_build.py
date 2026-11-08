@@ -1,5 +1,5 @@
 #!/usr/bin/env python3
-"""office_build.py — 要件定義の Markdown 正本（docs/03-requirements/）から Office 成果物を生成・検査する。
+"""office_build.py — RFP（docs/01-rfp/rfp.md）と要件定義の Markdown 正本（docs/03-requirements/）から Office 成果物を生成・検査する。
 
 使い方（プロジェクトルートで。通常は build.sh 経由）:
   python office_build.py all            # Word・Excel・PowerPoint を生成し、機械検査まで行う
@@ -61,10 +61,11 @@ def main(argv=None) -> int:
         if not prof[key].get("enabled", True):
             continue
         mod = {"docx": docx_builder, "xlsx": xlsx_builder, "pptx": pptx_builder}[t]
-        path, st = mod.build(prof, root, sources, out_dir)
+        res, st = mod.build(prof, root, sources, out_dir)
         stats[t] = st
-        made.append(path)
-        print(f"✅ {path.relative_to(root) if path.is_relative_to(root) else path}")
+        for path in (res if isinstance(res, list) else [res]):
+            made.append(path)
+            print(f"✅ {path.relative_to(root) if path.is_relative_to(root) else path}")
 
     if a.pdf and made:
         soffice = shutil.which("soffice") or shutil.which("libreoffice")

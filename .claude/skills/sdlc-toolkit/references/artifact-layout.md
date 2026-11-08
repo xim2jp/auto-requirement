@@ -10,11 +10,13 @@
 ├── PROJECT_LEARNINGS.md           # 案件の気付き（還流の一次資料）
 ├── .framework-version
 ├── docs/
-│   ├── 00-inputs/                 # Phase 0：ユーザーの持ち込み資料（読み取り専用。INDEX.md・README.md のみエージェントが更新）
+│   ├── 00-inputs/                 # ユーザーの持ち込み資料（任意。RFP・構想メモ・参考資料。読み取り専用。INDEX.md・README.md のみエージェントが更新）
 │   │   ├── INDEX.md               # 資料一覧（種別・版・受領日・抽出テキスト）
-│   │   ├── rfp.*                  # RFP 原本（.md / .docx / .xlsx / .pptx / .pdf。複数可）
+│   │   ├── rfp.*                  # 持ち込み RFP の原本（あれば。.md / .docx / .xlsx / .pptx / .pdf。複数可）
 │   │   └── materials/             # 参考資料（現行資料・議事録・業務フロー・帳票サンプル）
-│   ├── 01-rfp/                    # Phase 1：RFP 分析
+│   ├── 01-rfp/                    # Phase 0：RFP 準備／Phase 1：RFP 分析
+│   │   ├── concept.md             # 構想の聞き取り記録（ユーザーの原文・質問と回答・仮定）。社内用で Office 化しない
+│   │   ├── rfp.md                 # 構想から作成した RFP の正本（要件定義要求書）。ユーザー確認済みの版
 │   │   ├── rfp-analysis.md        # RFP 要求分解表（RFP-NNN）・達成目標（OBJ-NN）・欠落チェック・ヒアリング計画
 │   │   ├── extracted/             # Office 原本のテキスト化（extract_inputs.py が生成。手で直さない）
 │   │   └── reviews/
@@ -39,7 +41,9 @@
 │       ├── status.md              # 進捗の単一の真実
 │       └── document-set.md        # 作成する文書と Office 納品物の確定記録
 ├── deliverables/                  # Office 納品物（生成物。手書き不可）
+│   ├── 要件定義要求書_<案件名>_v<版>.docx   # 構想から RFP を作った案件のみ
 │   ├── 要件定義書_<案件名>_v<版>.docx
+│   ├── 別紙N_<タイトル>_<案件名>_v<版>.docx # 付録文書（appendix_mode: separate のとき）
 │   ├── 要件一覧_<案件名>_v<版>.xlsx
 │   └── 要件定義サマリー_<案件名>_v<版>.pptx
 └── tmp/                           # 作業用（PDF 化・ページ画像・Mermaid キャッシュ）。納品物に混ぜない
@@ -55,6 +59,8 @@
 
 | ID | 対象 | 定義する文書 | 例 |
 |----|------|-------------|----|
+| Q-NN | 構想の聞き取りの質問と回答 | concept.md §3 | Q-03 |
+| REQ-NNN / P-NNN | 作成した RFP の要求・問題（RFP 分析で RFP-NNN に分解される） | rfp.md §4.2 / §2.2 | REQ-004 |
 | RFP-NNN | RFP の要求項目（1 項目 1 要求） | rfp-analysis.md §3 | RFP-012 |
 | OBJ-NN | 達成目標（RFP の目的から抽出） | rfp-analysis.md §2 | OBJ-01 |
 | SH-NN | ステークホルダ | requirements.md §3 | SH-03 |
@@ -67,7 +73,7 @@
 | TP-NN | 変革ポイント（As-Is → To-Be） | requirements.md §7.3 | TP-02 |
 | RSK-NN | リスク | requirements.md §16 | RSK-03 |
 | TERM-NNN | 用語 | glossary.md §2 | TERM-014 |
-| AS-NN | 前提・仮定 | rfp-analysis.md §6 | AS-03 |
+| AS-NN | 前提・仮定 | rfp.md §13（構想から作った案件）／rfp-analysis.md §6 | AS-03 |
 | IN-NN | 持ち込み資料 | docs/00-inputs/INDEX.md | IN-01 |
 | OQ-NNN | 要確認事項 | open-questions.md | OQ-007 |
 | D-NNN | 決定 | decision-log.md | D-012 |
