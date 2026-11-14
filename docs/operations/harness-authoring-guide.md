@@ -9,7 +9,7 @@
 3. **機械で守れることは hooks で守る**。`docs/00-inputs/` の読み取り専用、レビューレポートの Verdict ブロック必須、は `.claude/settings.json` の hooks が強制する。プロンプトで「絶対禁止」を繰り返さない。
 4. **履歴を書かない**。「v0.8.0 で追加」のような版数注記は CHANGELOG の仕事。プロンプトには現在の仕様だけを書く。
 5. **描写は短く、判断材料は厚く**。ドメインのチェック観点・Block 条件・固有ノウハウは残す。言い換え・強調・重複は削る。
-6. **モデルは固定しない**。`model: inherit` を既定にし、操作者が選んだモデルで動かす。コスト上の理由で下位モデルに固定したいときだけ案件側で上書きする。
+6. **モデルは役割で使い分ける**。推論の深さが成果物の質を決める本筋（RFP 作成・RFP 分析と要件定義・PM）は `opus`、点検役（`*-reviewer`）は `sonnet`、手を動かす作業役（Office 生成：スクリプト実行・設定ファイル記入・体裁確認）は `haiku`。別名で書き、各系列の最新版（Opus 5.5・Sonnet 5.5・Haiku 5.5 など）に追従させる。全部を上位モデルで動かしたい案件は、案件側で `inherit` か `opus` に上書きする。
 7. **信頼する**。モデルは文脈を読み、必要な参照を自分で開く。「必読」「必ず Read」は、読まないと成果物が壊れる入力に限って書く。
 
 ## 2. エージェント定義のテンプレート
@@ -18,7 +18,7 @@
 ---
 name: <kebab-case。ファイル名と一致。改名は破壊的変更>
 description: <1〜3 文、300 字以内。何をする／いつ使う／起動語。版数注記を書かない>
-model: inherit
+model: <opus（本筋）／sonnet（点検役）／haiku（作業役）。§1-6>
 skills:
   - sdlc-toolkit
   - <ドメイン Skill があれば>
@@ -59,7 +59,7 @@ tools: <レビュワーなど制限が必要な場合のみ。省略＝全ツー
 
 ### frontmatter の決め方
 
-- `model: inherit` を既定。PM・レビュワーも同じ（操作者が上位モデルを選べば自動で上がる）
+- `model:` は役割で決める（§1-6）。本筋 `opus`、レビュワー `sonnet`、作業役 `haiku`。`check-harness.sh` が役割との一致を検査する
 - `skills:` に `sdlc-toolkit` を必ず入れる（全文がプリロードされる。SKILL.md は 150 行以内に保つ）。ドメイン Skill は 1〜2 本まで
 - `tools:` はレビュワーのみ `Read, Grep, Glob, Write`（＋必要なら Bash / WebSearch）で絞る。producer・specialist・PM は省略して全ツールを継承する（PM はサブエージェント起動のため `Agent` が必要）
 - `effort` / `maxTurns` / `memory` は原則使わない。使うなら理由を本文に書く
@@ -115,4 +115,4 @@ hooks は依存ゼロの bash で書く。新しい不変条件を足すとき�
 
 ## 7. 改訂時のチェック
 
-`bash scripts/check-harness.sh` が frontmatter の必須項目、office-deliverables スクリプトの存在と構文、`model: inherit` と `skills: sdlc-toolkit` の有無、description 長、版数注記の残存、サイズ超過、rework-loop の差し戻し先の実在を検査する。`scripts/check-layout-drift.sh`、`scripts/smoke-test.sh`（new-project → setup → Office 生成の通し確認）と合わせて CI で走る。Office 生成スクリプトを変えたら smoke-test に加えて、実際の Word / Excel / PowerPoint で開いて PDF 化し、ページ画像で崩れを確認する（`office-deliverables/references/office-style-guide.md` §5）。
+`bash scripts/check-harness.sh` が frontmatter の必須項目、office-deliverables スクリプトの存在と構文、役割ごとの `model:`（本筋 opus・レビュワー sonnet・作業役 haiku）と `skills: sdlc-toolkit` の有無、description 長、版数注記の残存、サイズ超過、rework-loop の差し戻し先の実在を検査する。`scripts/check-layout-drift.sh`、`scripts/smoke-test.sh`（new-project → setup → Office 生成の通し確認）と合わせて CI で走る。Office 生成スクリプトを変えたら smoke-test に加えて、実際の Word / Excel / PowerPoint で開いて PDF 化し、ページ画像で崩れを確認する（`office-deliverables/references/office-style-guide.md` §5）。

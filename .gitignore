@@ -5,3 +5,6 @@ tmp/
 .claude/settings.local.json
 .claude/scheduled_tasks.lock
 dist/
+
+# 有料版の試作（公開しない）
+saas/

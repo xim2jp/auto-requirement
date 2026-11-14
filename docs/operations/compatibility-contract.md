@@ -64,7 +64,7 @@
 ## 自己整合性の検証
 
 - `scripts/check-layout-drift.sh`：エージェント/Skill 定義が参照する `docs/NN-*` パスが artifact-layout.md に定義されているかを機械検証（CI で実行）
-- `scripts/check-harness.sh`：エージェント / Skill の frontmatter（name 一致・`model: inherit`・`skills: sdlc-toolkit`）、description 長、版数注記、サイズ、差し戻し先エージェントの実在、hooks の存在を検査（CI で実行。基準は harness-authoring-guide.md）
+- `scripts/check-harness.sh`：エージェント / Skill の frontmatter（name 一致・役割ごとの `model:`・`skills: sdlc-toolkit`）、description 長、版数注記、サイズ、差し戻し先エージェントの実在、hooks の存在を検査（CI で実行。基準は harness-authoring-guide.md）
 - 破壊的変更を含む PR は CHANGELOG の該当バージョンに **「BREAKING」** と移行手順を必ず記載
 
 ## バージョニング（feedback-loop.md と共通）

@@ -161,7 +161,7 @@ bash .claude/skills/office-deliverables/scripts/build.sh extract    # RFP 原本
 - **方法論はフル版と同じ**：ビジネス要求（問題・課題 → 業務目的と測定尺度 → 手段 → 優先順位・採否）→ システム化要求（UC・NFR 6 カテゴリ・権限・用語）。記述規約（禁止語・MEDIC・一文一義）は reviewer が Grep で機械検査
 - **納品物は生成する**：Markdown 正本 → Office。同じ正本から全納品物を作るので件数・ID・用語が一致する。発注者の指摘は Markdown を直して再生成し、版数を上げる
 - **機械で守れることは hooks で守る**：`docs/00-inputs/`（RFP 原本）・`deliverables/`・`docs/01-rfp/extracted/` への手書き拒否、レビューレポートの Verdict ブロック必須
-- **モデルは固定しない**：全エージェント `model: inherit`
+- **モデルは役割で使い分ける**：本筋（RFP 作成・要件定義・PM）は Opus、点検役（要件レビュー・成果物レビュー）は Sonnet、手を動かす作業役（Office 生成）は Haiku。各エージェントの `model:` を書き換えれば変更できる
 
 ## フル版との関係
 

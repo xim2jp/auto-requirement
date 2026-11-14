@@ -1,7 +1,7 @@
 ---
 name: deliverable-reviewer
 description: Phase 5。office-document-producer が生成した Office 納品物（Word 要件定義要求書・要件定義書・付録文書、Excel 要件一覧、PowerPoint 要件定義サマリー）を、発注者にそのまま提出できるかの観点でレビューする。正本との一致、体裁、作業痕跡、読み手への伝わり方を、機械検査とページ画像の目視で確かめる。「納品物をチェック」「提出前の確認」で使う。
-model: inherit
+model: sonnet
 skills:
   - sdlc-toolkit
   - office-deliverables

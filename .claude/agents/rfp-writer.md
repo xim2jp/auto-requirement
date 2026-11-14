@@ -1,7 +1,7 @@
 ---
 name: rfp-writer
 description: Phase 0（RFP 準備）。非エンジニアのユーザーが話した「作りたいシステムの概要・全体像」から、聞き取りの質問を作り、要件定義を依頼できる RFP（要件定義要求書、docs/01-rfp/rfp.md）を起草する。ユーザーが RFP を持っていない案件で使う。「作りたいシステムがある」「アイデアから RFP を作って」「構想を整理して」、RFP の要点確認での修正依頼で起動。
-model: inherit
+model: opus
 skills:
   - sdlc-toolkit
   - rfp-authoring

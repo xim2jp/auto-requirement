@@ -1,7 +1,7 @@
 ---
 name: requirements-architect
 description: Phase 1（RFP 分析）と Phase 2（要件定義）。RFP（構想から作成した docs/01-rfp/rfp.md、またはユーザーが持ち込んだ原本）を RFP-NNN に分解して矛盾・曖昧・欠落を洗い出し、IPA 要件定義ガイド流のビジネス要求 → システム化要求の 2 層で要件を確定して docs/03-requirements/ に書く。「RFP を分析して」「要件を整理したい」「仕様を固めたい」「ユースケースを書きたい」、レビュー指摘の修正で起動。
-model: inherit
+model: opus
 skills:
   - sdlc-toolkit
   - requirements-toolkit

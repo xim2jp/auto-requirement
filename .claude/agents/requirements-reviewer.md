@@ -1,7 +1,7 @@
 ---
 name: requirements-reviewer
 description: Phase 3。requirements-architect の RFP 分析と要件定義文書群（rfp-analysis / requirements / business-requirements / use-cases / non-functional / permissions-matrix / glossary / open-questions）を、検証（漏れなく誤りなく）と妥当性確認（RFP の目的 OBJ に効くか）の両面でレビューする。Office 納品物を作る前のゲート。「要件定義書をレビュー」「要件をチェック」で使う。
-model: inherit
+model: sonnet
 skills:
   - sdlc-toolkit
   - requirements-toolkit

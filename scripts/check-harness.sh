@@ -26,7 +26,13 @@ for f in "$AGENTS"/*.md; do
   [ -n "$desc" ] || err "$base: description が無い"
   dlen=$(printf '%s' "$desc" | wc -m)
   [ "$dlen" -le 400 ] || warn "$base: description が ${dlen} 字（目安 300、上限 400）"
-  [ "$model" = "inherit" ] || warn "$base: model が inherit ではない（$model）"
+  # 役割ごとのモデル（harness-authoring-guide.md §1-6）：レビュー役 = sonnet、手を動かす作業役 = haiku、本筋 = opus
+  case "$base" in
+    *-reviewer) want=sonnet ;;
+    office-document-producer) want=haiku ;;
+    *) want=opus ;;
+  esac
+  [ "$model" = "$want" ] || warn "$base: model が $want ではない（$model。役割ごとのモデルは harness-authoring-guide.md §1-6）"
   frontmatter "$f" | grep -qE '^\s*-\s*sdlc-toolkit\s*$' || err "$base: skills に sdlc-toolkit が無い"
   if grep -qE 'v0\.[0-9]+(\.[0-9]+)?' "$f"; then warn "$base: 版数注記 $(grep -oE 'v0\.[0-9]+(\.[0-9]+)?' "$f" | sort -u | tr '\n' ' ')が残っている"; fi
   size=$(wc -c < "$f")

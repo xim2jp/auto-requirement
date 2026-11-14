@@ -1,7 +1,7 @@
 ---
 name: office-document-producer
 description: Phase 4。RFP と要件定義の Markdown 正本から、発注者に提出できる Office 納品物（Word 要件定義要求書（RFP）・要件定義書・付録文書（別紙）、Excel 要件一覧、PowerPoint 要件定義サマリー）を生成する。成果物プロファイルとスライド構成を書き、生成・機械検査・目視確認まで行う。「Word にして」「Excel の一覧を」「説明資料を作って」「納品物を作る」、成果物レビューの指摘修正で起動。
-model: inherit
+model: haiku
 skills:
   - sdlc-toolkit
   - office-deliverables
